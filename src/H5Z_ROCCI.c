@@ -37,7 +37,7 @@ H5PL_type_t H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
 const void *H5PLget_plugin_info(void) {return H5Z_ROCCI;}
 
 void ROCCI_cdArrayToMetaDataErr(size_t cd_nelmts, const unsigned int cd_values[], int* dimSize, int* dataType, size_t* r5, size_t* r4, size_t* r3, size_t* r2, size_t* r1,
-int* error_bound_mode, double* abs_error, double* rel_error, double* pw_rel_error, double* psnr)
+int* error_bound_mode, double* abs_error, double* rel_error, double* pw_rel_error, double* psnr, double* fixedRatio)
 {
 	ROCCI_cdArrayToMetaData(cd_nelmts, cd_values, dimSize, dataType, r5, r4, r3, r2, r1);
 	int dim = *dimSize;
@@ -57,6 +57,9 @@ int* error_bound_mode, double* abs_error, double* rel_error, double* pw_rel_erro
 	int32ToBytes_bigEndian(b, cd_values[k++]);
 	int32ToBytes_bigEndian(b+4, cd_values[k++]);
 	*psnr = bytesToDouble(b);
+	int32ToBytes_bigEndian(b, cd_values[k++]);
+	int32ToBytes_bigEndian(b+4, cd_values[k++]);
+	*fixedRatio = bytesToDouble(b);	
 }
 
 /**
@@ -200,7 +203,9 @@ void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int
 				(*new_cd_values)[10] = old_cd_values[6];
 				(*new_cd_values)[11] = old_cd_values[7];
 				(*new_cd_values)[12] = old_cd_values[8];
-				*new_cd_nelmts = 13;
+				(*new_cd_values)[13] = old_cd_values[9];
+				(*new_cd_values)[14] = old_cd_values[10];
+				*new_cd_nelmts = 15;
 			}
 			break;		
 		case 2:
@@ -219,7 +224,9 @@ void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int
 				(*new_cd_values)[10] = old_cd_values[6];
 				(*new_cd_values)[11] = old_cd_values[7];
 				(*new_cd_values)[12] = old_cd_values[8];
-				*new_cd_nelmts = 13;
+				(*new_cd_values)[13] = old_cd_values[9];
+				(*new_cd_values)[14] = old_cd_values[10];
+				*new_cd_nelmts = 15;
 			}
 			break;
 		case 3:
@@ -239,7 +246,9 @@ void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int
 				(*new_cd_values)[11] = old_cd_values[6];
 				(*new_cd_values)[12] = old_cd_values[7];
 				(*new_cd_values)[13] = old_cd_values[8];
-				*new_cd_nelmts = 14;
+				(*new_cd_values)[14] = old_cd_values[9];
+				(*new_cd_values)[15] = old_cd_values[10];				
+				*new_cd_nelmts = 16;
 			}
 			break;
 		case 4:
@@ -260,7 +269,9 @@ void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int
 				(*new_cd_values)[12] = old_cd_values[6];
 				(*new_cd_values)[13] = old_cd_values[7];
 				(*new_cd_values)[14] = old_cd_values[8];
-				*new_cd_nelmts = 15;
+				(*new_cd_values)[15] = old_cd_values[9];
+				(*new_cd_values)[16] = old_cd_values[10];				
+				*new_cd_nelmts = 17;
 				break;
 			}
 		default:
@@ -282,14 +293,16 @@ void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int
 				(*new_cd_values)[13] = old_cd_values[6];
 				(*new_cd_values)[14] = old_cd_values[7];
 				(*new_cd_values)[15] = old_cd_values[8];
-				*new_cd_nelmts = 16;
+				(*new_cd_values)[16] = old_cd_values[9];
+				(*new_cd_values)[17] = old_cd_values[10];
+				*new_cd_nelmts = 18;
 			}
 	}
  }
 
-void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int error_bound_mode, double abs_error, double rel_error, double pw_rel_error, double psnr)
+void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int error_bound_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double fixedCR)
 {
-	*cd_values = (unsigned int*)malloc(sizeof(unsigned int)*9);
+	*cd_values = (unsigned int*)malloc(sizeof(unsigned int)*11);
 	int k = 0;
 	(*cd_values)[k++] = error_bound_mode;
 	unsigned char b[8];
@@ -301,6 +314,9 @@ void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int e
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b+4);
 	doubleToBytes(b, pw_rel_error);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b);		
+	(*cd_values)[k++] = bytesToInt32_bigEndian(b+4);
+	doubleToBytes(b, psnr);
+	(*cd_values)[k++] = bytesToInt32_bigEndian(b);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b+4);
 	doubleToBytes(b, psnr);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b);
@@ -320,7 +336,7 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	H5T_sign_t dsign;
 	unsigned int flags = 0;
 	size_t mem_cd_nelmts = 9, cd_nelmts = 0;
-	unsigned int mem_cd_values[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
+	unsigned int mem_cd_values[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 	//H5Z_FILTER_ROCCI
 	//note that mem_cd_nelmts must be non-zero, otherwise, mem_cd_values cannot be filled.
@@ -481,9 +497,9 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 	int withErrInfo = checkCDValuesWithErrors(cd_nelmts, cd_values);
 
 	int error_mode = 0;
-	double abs_error = 0, rel_error = 0, pw_rel_error = 0, psnr = 0;
+	double abs_error = 0, rel_error = 0, pw_rel_error = 0, psnr = 0, ratio = 0;
 	if(withErrInfo)
-		ROCCI_cdArrayToMetaDataErr(cd_nelmts, cd_values, &dimSize, &dataType, &r5, &r4, &r3, &r2, &r1, &error_mode, &abs_error, &rel_error, &pw_rel_error, &psnr);
+		ROCCI_cdArrayToMetaDataErr(cd_nelmts, cd_values, &dimSize, &dataType, &r5, &r4, &r3, &r2, &r1, &error_mode, &abs_error, &rel_error, &pw_rel_error, &psnr, &ratio);
 	else
 		ROCCI_cdArrayToMetaData(cd_nelmts, cd_values, &dimSize, &dataType, &r5, &r4, &r3, &r2, &r1);
 	
@@ -599,7 +615,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			//printf("error=%f, withErrInfo=%d\n", confparams_cpr->relBoundRatio, withErrInfo);
 			if(withErrInfo)
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
 			free(*buf);
@@ -613,7 +629,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			if(withErrInfo)
 			{
 				//printf("dataType=%d, error_mode=%d, abs_err=%f, rel_err=%f\n", dataType, error_mode, abs_error, rel_error);
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 			{
@@ -629,7 +645,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			char* data = (char*)(*buf);
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
 			free(*buf);
@@ -642,7 +658,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -656,7 +672,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -670,7 +686,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -684,7 +700,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -698,7 +714,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -712,7 +728,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);
@@ -726,7 +742,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 			unsigned char *bytes = NULL;
 			if(withErrInfo)
 			{
-				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, r5, r4, r3, r2, r1);
+				bytes = ROCCI_compress_args(dataType, data, &outSize, error_mode, abs_error, rel_error, pw_rel_error, psnr, ratio, r5, r4, r3, r2, r1);
 			}
 			else
 				bytes = ROCCI_compress(dataType, data, &outSize, r5, r4, r3, r2, r1);

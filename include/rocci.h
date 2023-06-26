@@ -18,6 +18,7 @@
 #include <time.h>          /* For time(), in seconds */
 
 #include <rocci_defines.h>
+//#include <libpressio.h>
 
 #ifdef _WIN32
 #define PATH_SEPARATOR ';'
@@ -29,9 +30,43 @@
 extern "C" {
 #endif
 
+#define ROCCI_SZ2 0
+#define ROCCI_SZ3 1
+#define ROCCI_QOZ 2
+#define ROCCI_ZFP 3
+#define ROCCI_DR 4
+#define ROCCI_BG 5
+#define ROCCI_SZX 6
 
+#define ROCCI_CR_METRIC 0
+#define ROCCI_PSNR_METRIC 1
+#define ROCCI_SSIM_METRIC 2
+#define ROCCI_AC_METRIC 3
 
+typedef struct ROCCI_Target
+{
+	int metric; //specify the metric
+	double targetValue_lowbound;
+	double targetValue_upperbound;
+} ROCCI_Target;
 
+typedef struct ROCCI_Setting
+{
+	int compressorID;
+	int compressionMode;
+	double absErrorBound;
+	double relErrorBound;
+	int precision; 
+	double rate;
+} ROCCI_Setting;
+
+int rocciFidelity_multiFields(float** oriData, float** decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
+int rocciFidelity_singleField(float* oriData, float* decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
+int roccifastSearchBestSetting (int metric, int compressorID, ROCCI_Target input, ROCCI_Setting* result);
+//int constuctRuntimeCompressor (ROCCI_Setting* input , pressio_compressor* output);
+
+unsigned char* ROCCI_compress_args(int dataType, void* data, size_t* outSize, int error_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double ratio, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
+unsigned char* ROCCI_compress(int dataType, void* data, size_t* outSize, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
 #ifdef __cplusplus
 }
