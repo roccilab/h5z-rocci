@@ -14,7 +14,7 @@
 #include <hdf5.h>
 #include "rocci.h"
 
-#define H5Z_FILTER_ROCCI 32017
+#define H5Z_FILTER_ROCCI 32037
 #define MAX_CHUNK_SIZE 4294967295 //2^32-1
 static hid_t H5Z_ROCCI_ERRCLASS = -1;
 
