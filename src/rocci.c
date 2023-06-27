@@ -16,6 +16,9 @@
 
 int versionNumber[4] = {ROCCI_VER_MAJOR,ROCCI_VER_MINOR,ROCCI_VER_BUILD,ROCCI_VER_REVISION};
 
+void ROCCI_Init(char* cfgFile)
+{}
+
 int rocciFidelity_multiFields(float** oriData, float** decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1)
 {
 	return 0;
@@ -40,3 +43,10 @@ unsigned char* ROCCI_compress(int dataType, void* data, size_t* outSize, size_t 
 {
 	return NULL;
 }
+
+void* ROCCI_decompress(int dataType, char *buf, size_t nbytes, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1)
+{
+	return NULL;
+}
+
+

@@ -60,6 +60,7 @@ typedef struct ROCCI_Setting
 	double rate;
 } ROCCI_Setting;
 
+void ROCCI_Init(char* cfgFile);
 int rocciFidelity_multiFields(float** oriData, float** decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 int rocciFidelity_singleField(float* oriData, float* decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 int roccifastSearchBestSetting (int metric, int compressorID, ROCCI_Target input, ROCCI_Setting* result);
@@ -67,7 +68,7 @@ int roccifastSearchBestSetting (int metric, int compressorID, ROCCI_Target input
 
 unsigned char* ROCCI_compress_args(int dataType, void* data, size_t* outSize, int error_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double ratio, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 unsigned char* ROCCI_compress(int dataType, void* data, size_t* outSize, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
-
+void* ROCCI_decompress(int dataType, char *buf, size_t nbytes, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 #ifdef __cplusplus
 }
 #endif

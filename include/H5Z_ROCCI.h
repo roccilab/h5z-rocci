@@ -47,20 +47,21 @@ do                                                    \
 } while(0)
 
 
+void H5Z_ROCCI_Init(char* cfgFile);
+size_t computeDataLength(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 void ROCCI_refreshDimForCdArray(int dataType, size_t old_cd_nelmts, unsigned int *old_cd_values, size_t* new_cd_nelmts, unsigned int **new_cd_values, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
 void ROCCI_cdArrayToMetaData(size_t cd_nelmts, const unsigned int cd_values[], int* dimSize, int* dataType, size_t* r5, size_t* r4, size_t* r3, size_t* r2, size_t* r1);
 void ROCCI_copymetaDataToCdArray(size_t* cd_nelmts, unsigned int *cd_values, int dataType, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
-void ROCCI_cdArrayToMetaDataErr(size_t cd_nelmts, const unsigned int cd_values[], int* dimSize, int* dataType, size_t* r5, size_t* r4, size_t* r3, size_t* r2, size_t* r1,
-int* error_bound_mode, double* abs_error, double* rel_error, double* pw_rel_error, double* psnr);
+void ROCCI_cdArrayToMetaDataErr(size_t cd_nelmts, const unsigned int cd_values[], int* dimSize, int* dataType, size_t* r5, size_t* r4, size_t* r3, size_t* r2, size_t* r1, int* error_bound_mode, double* abs_error, double* rel_error, double* pw_rel_error, double* psnr, double* fixedRatio);
 
 void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int error_bound_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double fixedCR);
 
 int checkCDValuesWithErrors(size_t cd_nelmts, const unsigned int cd_values[]);
 static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsigned int cd_values[], size_t nbytes, size_t* buf_size, void** buf);
 static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t space_id);
-
+int computeDimension(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
 void init_dims_chunk(int dim, hsize_t dims[5], hsize_t chunk[5], size_t nbEle, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
