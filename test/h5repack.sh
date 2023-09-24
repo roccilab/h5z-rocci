@@ -9,4 +9,4 @@ fi
 
 inputFile=$1
 outputFile=$2
-h5repack -f UD=32017,0 -i $inputFile -o $outputFile
+h5repack -f UD=32037,0 -i $inputFile -o $outputFile

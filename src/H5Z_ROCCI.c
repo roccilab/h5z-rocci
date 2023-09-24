@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "rocci_ByteToolkit.h"
 #include "H5Z_ROCCI.h"
 #include "H5PLextern.h"
 #include <stdint.h>
@@ -512,7 +511,7 @@ void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int e
 	doubleToBytes(b, psnr);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b+4);
-	doubleToBytes(b, psnr);
+	doubleToBytes(b, fixedCR);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b);
 	(*cd_values)[k++] = bytesToInt32_bigEndian(b+4);
 	*cd_nelmts = k;
@@ -520,6 +519,10 @@ void ROCCI_errConfigToCdArray(size_t* cd_nelmts, unsigned int **cd_values, int e
 
 static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_space_id)
 {
+
+	detectSysEndianType();
+	setDataEndianType(LITTLE_ENDIAN_DATA);
+
 	//printf("start in H5Z_rocci_set_local, dcpl_id = %d\n", dcpl_id);
 	static char const *_funcname_ = "H5Z_rocci_set_local";
 	size_t r5=0,r4=0,r3=0,r2=0,r1=0, dsize;
@@ -529,8 +532,8 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	H5T_class_t dclass;
 	H5T_sign_t dsign;
 	unsigned int flags = 0;
-	size_t mem_cd_nelmts = 9, cd_nelmts = 0;
-	unsigned int mem_cd_values[18]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
+	size_t mem_cd_nelmts = 11, cd_nelmts = 0;
+	unsigned int mem_cd_values[22]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 	//H5Z_FILTER_ROCCI
 	//note that mem_cd_nelmts must be non-zero, otherwise, mem_cd_values cannot be filled.
@@ -548,15 +551,19 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 
 	if(mem_cd_nelmts==0) //this means that the error information is missing from the cd_values
 	{
+		printf("ERR INFO NOT FOUND IN CDVALS\n");
 		H5Z_ROCCI_Init(cfgFile);
 	}
 	else //this means that the error information is included in the cd_values
 	{
 		ROCCI_Init(NULL);
-		herr_t ret = H5Zregister(H5Z_ROCCI); 
-		if(ret < 0)
-			printf("Error: H5Zregister(H5Z_ROCCI) faild.");
+		printf("ERR INFO FOUND IN CDVALS\n");
+		
 	}
+
+	herr_t ret = H5Zregister(H5Z_ROCCI); 
+	if(ret < 0)
+		printf("Error: H5Zregister(H5Z_ROCCI) faild.");
 	
 	int dataType = ROCCI_FLOAT;
 	
@@ -623,7 +630,7 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	}
 	
 	unsigned int* cd_values = NULL;
-	if(mem_cd_nelmts!=0 && mem_cd_nelmts!=9)
+	if(mem_cd_nelmts!=0 && mem_cd_nelmts!=11)
 	{
 		H5Epush(H5E_DEFAULT,__FILE__, "H5Z_rocci_set_local", __LINE__, H5E_ERR_CLS, H5E_ARGS, H5E_BADVALUE, "Wrong number of cd_values: The new version has 9 integer elements in cd_values. Please check 'test/print_h5repack_args' to get the correct cd_values.");
 		H5Eprint(H5E_DEFAULT, stderr);
