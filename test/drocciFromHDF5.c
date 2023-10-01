@@ -1,9 +1,9 @@
 /**
  *  @file drocciFromHDF5.c
  *  @author Sheng Di
- *  @date July, 2017
+ *  @date Sept, 2023
  *  @brief This is an example of using decompression interface (HDF5)
- *  (C) 2017 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
+ *  (C) 2023 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
 
@@ -38,15 +38,15 @@ int main(int argc, char * argv[])
 	if(argc < 2)
 	{
 		printf("Test case: drocciFromHDF5 [hdf5FilePath]\n");
-		printf("Example 1: drocciFromHDF5 testdata/x86/testfloat_8_8_128.dat.sz.hdf5\n");
-		printf("Example 2: drocciFromHDF5 testdata/x86/testint32_8x8x8.dat.sz.hdf5\n");
+		printf("Example 1: drocciFromHDF5 testdata/x86/testfloat_8_8_128.dat.rocci.hdf5\n");
+		printf("Example 2: drocciFromHDF5 testdata/x86/testint32_8x8x8.dat.rocci.hdf5\n");
 		exit(0);
 	}
 
 	sprintf(hdf5FilePath, "%s", argv[1]);
 	sprintf(outputFilePath, "%s.out.h5", hdf5FilePath);
 
-	/*Open the hdf5 file with SZ-compressed data*/
+	/*Open the hdf5 file with ROCCI-compressed data*/
     file = H5Fopen(hdf5FilePath, H5F_ACC_RDONLY, H5P_DEFAULT);
     dset = H5Dopen(file, DATASET, H5P_DEFAULT);
     
@@ -66,7 +66,8 @@ int main(int argc, char * argv[])
 	if((dtype = H5Dget_type(dset)) < 0)
 		printf("Error: H5Dget_type(dset) < 0\n");
 
-	/*Read the data using the default properties.*/
+	/*Read the data*/
+	H5Z_ROCCI_Init(cfgFile);
 	printf("....Reading ROCCI compressed data .....................\n");
 
 	if((type_class = H5Tget_class(dtype)) < 0)

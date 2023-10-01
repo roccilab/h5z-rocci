@@ -115,7 +115,7 @@ void ROCCI_cdArrayToMetaData(size_t cd_nelmts, const unsigned int cd_values[], i
 
 void H5Z_ROCCI_Init(char* cfgFile)
 {
-
+	ROCCI_Init(cfgFile);
 }
 
 size_t computeDataLength(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1)
@@ -551,13 +551,13 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 
 	if(mem_cd_nelmts==0) //this means that the error information is missing from the cd_values
 	{
-		printf("ERR INFO NOT FOUND IN CDVALS\n");
+		// printf("ERR INFO NOT FOUND IN CDVALS\n");
 		H5Z_ROCCI_Init(cfgFile);
 	}
 	else //this means that the error information is included in the cd_values
 	{
 		ROCCI_Init(NULL);
-		printf("ERR INFO FOUND IN CDVALS\n");
+		// printf("ERR INFO FOUND IN CDVALS\n");
 		
 	}
 
@@ -630,6 +630,7 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	}
 	
 	unsigned int* cd_values = NULL;
+	// printf("MEM %i\n", mem_cd_nelmts);
 	if(mem_cd_nelmts!=0 && mem_cd_nelmts!=11)
 	{
 		H5Epush(H5E_DEFAULT,__FILE__, "H5Z_rocci_set_local", __LINE__, H5E_ERR_CLS, H5E_ARGS, H5E_BADVALUE, "Wrong number of cd_values: The new version has 9 integer elements in cd_values. Please check 'test/print_h5repack_args' to get the correct cd_values.");

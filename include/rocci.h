@@ -18,7 +18,9 @@
 #include <time.h>          /* For time(), in seconds */
 
 #include <rocci_ByteToolkit.h>
-#include "libpressio.h"
+#include <rocci_defines.h>
+#include <inih/ini.h>
+#include <libpressio.h>
 
 #ifdef _WIN32
 #define PATH_SEPARATOR ';'

@@ -1,9 +1,9 @@
 /**
- *  @file szToHDF5.c
+ *  @file rocciToHDF5.c
  *  @author Sheng Di
- *  @date July, 2017
+ *  @date Sept, 2023
  *  @brief This is an example of using compression interface (HDF5)
- *  (C) 2017 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
+ *  (C) 2023 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
 
@@ -18,7 +18,6 @@
 #define DATASET "testdata_compressed"
 
 
-// using namespace SZ;
 
 dataEndianType = LITTLE_ENDIAN_DATA;
 
@@ -35,6 +34,8 @@ int main(int argc, char *argv[]) {
     size_t cd_nelmts, nbEle;
     unsigned int *cd_values = NULL;
     //unsigned int cd_values[7];
+
+    cd_nelmts = 0;
 
     herr_t status;
     htri_t avail;
@@ -73,11 +74,10 @@ int main(int argc, char *argv[]) {
     else if (strcmp(argv[1], "-u64") == 0)
         dataType = ROCCI_UINT64;
     else {
-        printf("Error: unknown data type in sz3ToHDF5.c!\n");
+        printf("Error: unknown data type in rocciToHDF5.c!\n");
         exit(0);
     }
 
-    printf("DTYPE: %i", dataType);
     snprintf(oriFilePath, 640, "%s", argv[2]);
     if (argc >= 4) {
         r1 = atoi(argv[3]); //8
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     interp_algo = 1;
 
     //printf("cfgFile=%s\n", cfgFile);
-    snprintf(outputFilePath, 640, "%s.sz3.h5", oriFilePath);
+    snprintf(outputFilePath, 640, "%s.rocci.h5", oriFilePath);
 
 //	printf("argv[1]=%s, dataType=%d\n", argv[1], dataType);
     nbEle = computeDataLength(r5, r4, r3, r2, r1);
@@ -110,20 +110,11 @@ int main(int argc, char *argv[]) {
 
     //Create cd_values
     printf("Dimension sizes: n5=%u, n4=%u, n3=%u, n2=%u, n1=%u\n", r5, r4, r3, r2, r1);
-    int mode = 1; //0: ABS, 1: REL, ...
-    ROCCI_errConfigToCdArray(&cd_nelmts, &cd_values, mode, 0.001, 0.001, 0,
-                          0, 60.0); //SZ_FLOAT or SZ_DOUBLE or SZ_INT 100x500x500 : 0, 0, 100, 500, 500, ABS, REL (0.01, 0.01*(max-min), PW_REL (0.01, 5, 6, 7, 8, 9 --> 5*0.01, 6*0.01, ...), PSNR (mean squared error)).
-    //load_conffile_flag = 0;
-    //										 REL
-    //SZ_metaDataErrToCdArray(&cd_nelmts, &cd_values, dataType, r5, r4, r3, r2, r1, 1, 0.01, 0.01, 0, 0); //SZ_FLOAT or SZ_DOUBLE or SZ_INT 100x500x500 : 0, 0, 100, 500, 500, ABS, REL (0.01, 0.01*(max-min), PW_REL (0.01, 5, 6, 7, 8, 9 --> 5*0.01, 6*0.01, ...), PSNR (mean squared error)).
-    /*cd_nelmts = 5;
-    cd_values[0] = 3;
-    cd_values[1] = 0;
-    cd_values[2] = 128;
-    cd_values[3] = 8;
-    cd_values[4] = 8;
-    cd_values[5] = 0;
-    cd_values[6] = 0;*/
+    // int mode = 1; //0: ABS, 1: REL, ...
+    cd_values = (unsigned int*)malloc(sizeof(unsigned int)*11);
+    // ROCCI_copymetaDataToCdArray(&cd_nelmts, cd_values, dataType, r5, r4, r3, r2, r1);
+    // ROCCI_errConfigToCdArray(&cd_nelmts, &cd_values, mode, 0.001, 0.001, 0,
+    //                       0, 60.0);
 
     int i = 0;
 	for(i=0;i<cd_nelmts;i++)
@@ -153,7 +144,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    /* Add the SZ compression filter and set the chunk size */
+    /* Add the ROCCI compression filter and set the chunk size */
     if (0 > H5Pset_filter(cpid, H5Z_FILTER_ROCCI, H5Z_FLAG_MANDATORY, cd_nelmts, cd_values)) {
         printf("Error in H5Psetfilter");
         exit(0);
@@ -163,7 +154,7 @@ int main(int argc, char *argv[]) {
         status = H5Zget_filter_info(H5Z_FILTER_ROCCI, &filter_config);
 
         if (filter_config & H5Z_FILTER_CONFIG_ENCODE_ENABLED)
-            printf("sz filter is available for encoding and decoding.\n");
+            printf("ROCCI filter is available for encoding and decoding.\n");
     }
     else{
         printf("ROCCI filter not available, make sure to set HDF5_PLUGIN_PATH\n");
@@ -174,16 +165,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    //Initialize the configuration for SZ
-    //You can also use the global variable conf_params to set the configuration for sz without cfgFile.
-    //Example of setting an absolute error bound:
-    //			sz_params* params = H5Z_SZ_Init_Default();
-    //			params->errorBoundMode = ABS;
-    //			params->absErrBound = 1E-4;
-
-    //H5Z_SZ_Init(cfgFile);
-
-    printf("....Writing SZ compressed data.............\n");
+    printf("....Writing ROCCI compressed data.............\n");
 
     if (dataType == ROCCI_FLOAT) {
         float *data = malloc(sizeof(float)*nbEle);
@@ -528,7 +510,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else {
-        printf("Error: unknown data type in sz3ToHDF5.cpp!\n");
+        printf("Error: unknown data type in rocciToHDF5.cpp!\n");
         exit(0);
     }
 

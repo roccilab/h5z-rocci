@@ -2,15 +2,17 @@ find_package(HDF5 REQUIRED)
 find_package(std_compat REQUIRED)
 find_package(LibPressio REQUIRED)
 
-include(CMakePrintHelpers)
-message(HDF5 STUFF:)
-cmake_print_variables(HDF5_LIBRARIES)
-cmake_print_variables(HDF5_INCLUDE_DIRS)
+# include(CMakePrintHelpers)
+# message(HDF5 DIRS:)
+# cmake_print_variables(HDF5_LIBRARIES)
+# cmake_print_variables(HDF5_INCLUDE_DIRS)
 
 add_library(ROCCI SHARED
   src/rocci.c
   src/rocci_ByteToolkit.c
   src/rocci_FileUtil.c
+  src/rocci_utils.c
+  src/inih/ini.c
 )
 target_include_directories(
   ROCCI
