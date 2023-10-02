@@ -67,7 +67,6 @@ int main(int argc, char * argv[])
 		printf("Error: H5Dget_type(dset) < 0\n");
 
 	/*Read the data*/
-	H5Z_ROCCI_Init(cfgFile);
 	printf("....Reading ROCCI compressed data .....................\n");
 
 	if((type_class = H5Tget_class(dtype)) < 0)

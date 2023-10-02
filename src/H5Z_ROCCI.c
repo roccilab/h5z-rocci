@@ -556,10 +556,11 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	}
 	else //this means that the error information is included in the cd_values
 	{
-		ROCCI_Init(NULL);
+		H5Z_ROCCI_Init(NULL);
 		// printf("ERR INFO FOUND IN CDVALS\n");
-		
 	}
+
+	init_rocci_flag = 1;
 
 	herr_t ret = H5Zregister(H5Z_ROCCI); 
 	if(ret < 0)
@@ -689,6 +690,11 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 {
 	//printf("start in H5Z_filter_rocci, cd_nelmts=%d\n", cd_nelmts);
 	//H5Z_ROCCI_Init_Default();
+
+	if(!init_rocci_flag) {
+		H5Z_ROCCI_Init(cfgFile);
+		init_rocci_flag = 1;
+	}
 	
 	size_t r1 = 0, r2 = 0, r3 = 0, r4 = 0, r5 = 0;
 	int dimSize = 0, dataType = 0;

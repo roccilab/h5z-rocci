@@ -36,3 +36,5 @@ Now you can test the filter using the examples `rocciToHDF5` and `drocciFromHDF5
 ./rocciToHDF5 -f testfloat_8_8_128.dat 8 8 128
 ./drocciFromHDF5 testfloat_8_8_128.dat.rocci.h5
 ```
+
+*Note: while the C API usage in the examples above has been confirmed to work with hdf5 1.14.2, using utilities such as h5repack and h5dump may require a different version of hdf5. Currently, we have confirmed that hdf5 1.10.1 works for both the C API and the hdf5 utility scripts*
