@@ -29,6 +29,12 @@ cmake -DBUILD_TESTS=ON ..
 make
 ```
 
+Additionally, we must allow hdf5 to find our custom filter by setting `HDF5_PLUGIN_PATH` to the directory containing `libhdf5rocci.so`:
+
+```bash
+export HDF5_PLUGIN_PATH=/home/projects/h5z-rocci/build
+```
+
 Now you can test the filter using the examples `rocciToHDF5` and `drocciFromHDF5` in `build/test`. To alter the configuration you can alter `rocci.config` in `test/`, this file should be in the working directory when calling the H5Z filter to ensure it is found.
 
 ```bash
