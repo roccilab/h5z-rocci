@@ -16,8 +16,52 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include "rocci_defines.h"
 
 //ByteToolkit.c
+
+int sysEndianType;
+int dataEndianType;
+
+typedef union lint16 {
+    unsigned short usvalue;
+    short svalue;
+    unsigned char byte[2];
+} lint16;
+
+typedef union lint32 {
+    int ivalue;
+    unsigned int uivalue;
+    unsigned char byte[4];
+} lint32;
+
+typedef union lint64 {
+    int64_t lvalue;
+    uint64_t ulvalue;
+    unsigned char byte[8];
+} lint64;
+
+typedef union ldouble {
+    double value;
+    uint64_t lvalue;
+    unsigned char byte[8];
+} ldouble;
+
+typedef union lfloat {
+    float value;
+    unsigned int ivalue;
+    unsigned char byte[4];
+    uint16_t int16[2];
+} lfloat;
+
+void detectSysEndianType();
+
+void symTransform_4bytes(unsigned char data[4]);
+void symTransform_8bytes(unsigned char data[8]);
+
+void setSysEndianType(int endianType);
+void setDataEndianType(int endianType);
 
 extern unsigned short bytesToUInt16_bigEndian(unsigned char* bytes);
 extern unsigned int bytesToUInt32_bigEndian(unsigned char* bytes);

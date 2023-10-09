@@ -8,6 +8,56 @@
  */
  
 #include <stdlib.h>
+#include "rocci_ByteToolkit.h"
+
+void detectSysEndianType()
+{
+    //get sys endian type
+    int x_temp = 1;
+    char *y_temp = (char*)&x_temp;
+
+    if(*y_temp==1)
+        sysEndianType = LITTLE_ENDIAN_SYSTEM;
+    else //=0
+        sysEndianType = BIG_ENDIAN_SYSTEM;
+}
+
+void setSysEndianType(int endianType){
+	sysEndianType = endianType;
+}
+
+void setDataEndianType(int endianType){
+	dataEndianType = endianType;
+}
+
+void symTransform_4bytes(unsigned char data[4]) {
+    unsigned char tmp = data[0];
+    data[0] = data[3];
+    data[3] = tmp;
+
+    tmp = data[1];
+    data[1] = data[2];
+    data[2] = tmp;
+}
+
+void symTransform_8bytes(unsigned char data[8])
+{
+	unsigned char tmp = data[0];
+	data[0] = data[7];
+	data[7] = tmp;
+
+	tmp = data[1];
+	data[1] = data[6];
+	data[6] = tmp;
+	
+	tmp = data[2];
+	data[2] = data[5];
+	data[5] = tmp;
+	
+	tmp = data[3];
+	data[3] = data[4];
+	data[4] = tmp;
+}
 
 inline unsigned short bytesToUInt16_bigEndian(unsigned char* bytes)
 {

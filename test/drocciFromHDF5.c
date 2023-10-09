@@ -1,9 +1,9 @@
 /**
- *  @file dszFromHDF5.c
+ *  @file drocciFromHDF5.c
  *  @author Sheng Di
- *  @date July, 2017
+ *  @date Sept, 2023
  *  @brief This is an example of using decompression interface (HDF5)
- *  (C) 2017 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
+ *  (C) 2023 by Mathematics and Computer Science (MCS), Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
 
@@ -12,8 +12,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include "hdf5.h"
-#include "sz.h"
-#include "H5Z_SZ.h"
+#include "H5Z_ROCCI.h"
 
 #define DATASET "testdata_compressed"
 #define MAX_CHUNK_SIZE 4294967295 //2^32-1
@@ -38,16 +37,16 @@ int main(int argc, char * argv[])
 
 	if(argc < 2)
 	{
-		printf("Test case: dszFromHDF5 [hdf5FilePath]\n");
-		printf("Example 1: dszFromHDF5 testdata/x86/testfloat_8_8_128.dat.sz.hdf5\n");
-		printf("Example 2: dszFromHDF5 testdata/x86/testint32_8x8x8.dat.sz.hdf5\n");
+		printf("Test case: drocciFromHDF5 [hdf5FilePath]\n");
+		printf("Example 1: drocciFromHDF5 testdata/x86/testfloat_8_8_128.dat.rocci.hdf5\n");
+		printf("Example 2: drocciFromHDF5 testdata/x86/testint32_8x8x8.dat.rocci.hdf5\n");
 		exit(0);
 	}
 
 	sprintf(hdf5FilePath, "%s", argv[1]);
 	sprintf(outputFilePath, "%s.out.h5", hdf5FilePath);
 
-	/*Open the hdf5 file with SZ-compressed data*/
+	/*Open the hdf5 file with ROCCI-compressed data*/
     file = H5Fopen(hdf5FilePath, H5F_ACC_RDONLY, H5P_DEFAULT);
     dset = H5Dopen(file, DATASET, H5P_DEFAULT);
     
@@ -55,11 +54,11 @@ int main(int argc, char * argv[])
     dcpl = H5Dget_create_plist(dset);
 	
     /*Check that filter is not registered with the library yet*/
-	avail = H5Zfilter_avail(H5Z_FILTER_SZ);
+	avail = H5Zfilter_avail(H5Z_FILTER_ROCCI);
 	if(!avail)
-		printf("sz filter is not yet available after the H5Pget_filter call.\n");
+		printf("rocci filter is not yet available after the H5Pget_filter call.\n");
 	else
-		printf("sz filter is available.\n");
+		printf("rocci filter is available.\n");
 	
 	space_id = H5Dget_space(dset);	
 	nbEle = H5Sget_simple_extent_npoints(space_id);
@@ -67,8 +66,8 @@ int main(int argc, char * argv[])
 	if((dtype = H5Dget_type(dset)) < 0)
 		printf("Error: H5Dget_type(dset) < 0\n");
 
-	/*Read the data using the default properties.*/
-	printf("....Reading SZ compressed data .....................\n");
+	/*Read the data*/
+	printf("....Reading ROCCI compressed data .....................\n");
 
 	if((type_class = H5Tget_class(dtype)) < 0)
 	{
@@ -256,7 +255,7 @@ int main(int argc, char * argv[])
 		
 		break;
 	default: 
-		printf("Error: H5Z-SZ supports only float, double or integers.\n");
+		printf("Error: H5Z-ROCCI supports only float, double or integers.\n");
 		exit(0);
 	}
 	
