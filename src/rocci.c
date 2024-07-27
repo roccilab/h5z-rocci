@@ -15,14 +15,6 @@
 #include <rocci.h>
 #include <rocci_utils.h>
 
-int versionNumber[4] = {ROCCI_VER_MAJOR,ROCCI_VER_MINOR,ROCCI_VER_BUILD,ROCCI_VER_REVISION};
-
-const char* COMPRESSOR_STR[] = {"SZ2", "SZ3", "QOZ", "ZFP", "DR", "BG", "SZX"};
-int COMPRESSOR_OPTIONS[] = {ROCCI_SZ2, ROCCI_SZ3, ROCCI_QOZ, ROCCI_ZFP, ROCCI_DR, ROCCI_BG, ROCCI_SZX};
-
-const char* CMP_MODE_STR[] = {"ABS", "REL", "VR_REL", "ABS_AND_REL", "ABS_OR_REL", "PSNR", "NORM", "FIX_RATE"};
-int CMP_MODE_OPTIONS[] = {ABS, REL, VR_REL, ABS_AND_REL, ABS_OR_REL, PSNR, NORM, FIX_RATE};
-
 ROCCI_Setting rocci_config;
 
 static int rocci_ini_config_handler(void* user, const char* section, const char* name,

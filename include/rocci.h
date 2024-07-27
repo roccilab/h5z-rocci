@@ -45,6 +45,15 @@ extern "C" {
 #define ROCCI_SSIM_METRIC 2
 #define ROCCI_AC_METRIC 3
 
+const int versionNumber[4] = {ROCCI_VER_MAJOR,ROCCI_VER_MINOR,ROCCI_VER_BUILD,ROCCI_VER_REVISION};
+
+const char* COMPRESSOR_STR[] = {"SZ2", "SZ3", "QOZ", "ZFP", "DR", "BG", "SZX"};
+const int COMPRESSOR_OPTIONS[] = {ROCCI_SZ2, ROCCI_SZ3, ROCCI_QOZ, ROCCI_ZFP, ROCCI_DR, ROCCI_BG, ROCCI_SZX};
+
+const char* CMP_MODE_STR[] = {"ABS", "REL", "VR_REL", "ABS_AND_REL", "ABS_OR_REL", "PSNR", "NORM", "FIX_RATE"};
+const int CMP_MODE_OPTIONS[] = {ABS, REL, VR_REL, ABS_AND_REL, ABS_OR_REL, PSNR, NORM, FIX_RATE};
+
+
 typedef struct ROCCI_Target
 {
 	int metric; //specify the metric

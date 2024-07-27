@@ -30,6 +30,14 @@ void setDataEndianType(int endianType){
 	dataEndianType = endianType;
 }
 
+int getSysEndiantype() {
+	return sysEndianType;
+}
+
+int getDataEndianType() {
+	return dataEndianType;
+}
+
 void symTransform_4bytes(unsigned char data[4]) {
     unsigned char tmp = data[0];
     data[0] = data[3];

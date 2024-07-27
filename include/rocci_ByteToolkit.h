@@ -21,8 +21,8 @@ extern "C" {
 
 //ByteToolkit.c
 
-int sysEndianType;
-int dataEndianType;
+static int sysEndianType;
+static int dataEndianType;
 
 typedef union lint16 {
     unsigned short usvalue;
@@ -62,6 +62,9 @@ void symTransform_8bytes(unsigned char data[8]);
 
 void setSysEndianType(int endianType);
 void setDataEndianType(int endianType);
+
+int getSysEndianType();
+int getDataEndianType();
 
 extern unsigned short bytesToUInt16_bigEndian(unsigned char* bytes);
 extern unsigned int bytesToUInt32_bigEndian(unsigned char* bytes);

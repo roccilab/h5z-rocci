@@ -17,16 +17,13 @@
 
 #define DATASET "testdata_compressed"
 
-
-
-dataEndianType = LITTLE_ENDIAN_DATA;
-
 int main(int argc, char *argv[]) {
 
     //(void) helper fn to detect system endian type
-    //detectSysEndianType();
+    detectSysEndianType();
     //by default sysEndianType and dataEndianType are little endian, can set them manually here
     //dataEndianType = BIG_ENDIAN_DATA;
+    int dataEndianType = LITTLE_ENDIAN_DATA;
 
     size_t r5 = 0, r4 = 0, r3 = 0, r2 = 0, r1 = 0;
     int cmp_algo, interp_algo; //select compression and interpolation for SZ3
