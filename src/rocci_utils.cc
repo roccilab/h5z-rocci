@@ -1,4 +1,5 @@
 #include <rocci_utils.h>
+#include <string.h>
 
 size_t computeNbEle(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1){
 	size_t n = 0;
@@ -16,6 +17,23 @@ size_t computeNbEle(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1){
 
 	return n;
 }
+
+char* append_string(const char* original, const char* append) {
+    size_t len1 = strlen(original);
+    size_t len2 = strlen(append);
+    
+    char* result = (char*) malloc(len1 + len2 + 1);
+    
+    if (result == NULL) {
+        return NULL;
+    }
+    
+    strcpy(result, original);
+    strcat(result, append);
+    
+    return result;
+}
+
 
 enum pressio_dtype rocci_dtype_to_pressio_dtype(int dataType){
 	switch(dataType){
@@ -71,12 +89,37 @@ struct pressio_compressor* get_compressor(ROCCI_Setting rocci_config, struct pre
 			break;
 		default:
 			printf("Undefined compressor ID in ROCCI Configuration\n");
-			exit(0);
+			exit(1);
 	}
 
 	printf("compressor: %s\n", compressor_id);
 	struct pressio_compressor* comp = pressio_get_compressor(library, compressor_id);
+	if(comp == NULL) {
+		printf("Error: Chosen compressor, %s, is not available in libpressio. This is usually because it was not installed.\n", compressor_id);
+		exit(1);
+	}
 	return comp;
+}
+
+// get SECRE surrogate plugin for compressor
+char* get_surrogate(ROCCI_Setting rocci_config, struct pressio* library){
+	char* compressor_id;
+	switch(rocci_config.compressorID){
+		// case ROCCI_SZ3:
+		// 	compressor_id = "sz3";
+		// 	break;
+		// case ROCCI_ZFP:
+		// 	compressor_id = "zfp";
+		// 	break;
+		case ROCCI_SZX:
+			compressor_id = "szx_surrogate";
+			break;
+		default:
+			return NULL;
+	}
+
+	printf("compressor surrogate: %s\n", compressor_id);
+	return compressor_id;
 }
 
 struct pressio_options* get_compressor_options(ROCCI_Setting rocci_config)
@@ -138,7 +181,7 @@ struct pressio_data* create_pressio_data(int dataType, void* data, size_t r5, si
 	enum pressio_dtype data_type = rocci_dtype_to_pressio_dtype(dataType);
 	struct pressio_data* data_buffer;
 	if(data == NULL){
-		float* x = malloc(sizeof(float)*nbEle);
+		float* x = (float*)malloc(sizeof(float)*nbEle);
 		data_buffer = pressio_data_new_move(data_type, x, nDims, dims, NULL, NULL);
 	}
 	else {

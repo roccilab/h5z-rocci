@@ -1,16 +1,27 @@
 #include <sstream>
-#include "estimate_metric.h"
-#include "libpressio_ext/cpp/compressor.h"
-#include "libpressio_ext/cpp/data.h"
-#include "libpressio_ext/cpp/options.h"
-#include "libpressio_ext/cpp/pressio.h"
-#include <pressio_version.h>
-namespace libpressio { namespace szx_ns {
+#include <SZx/estimate_metric.h>
+#include <std_compat/memory.h>
+#include <libpressio_ext/cpp/libpressio.h>
+#include <map>
 
+namespace libpressio { namespace szx_surrogate {
+
+  #define ABS 0
+  #define REL 1
+
+  #define CR_METRIC 0
+  #define PSNR_METRIC 1
+  #define SSIM_METRIC 2
 
   const std::map<std::string,int> ERR_MODES {
     {"abs", ABS},
     {"rel", REL},
+  };
+
+  const std::map<std::string,int> METRIC_MODES {
+    {"cr", CR_METRIC},
+    {"psnr", PSNR_METRIC},
+    {"ssim", SSIM_METRIC},
   };
 
   std::vector<std::string> keys(std::map<std::string, int> const& entries) {
@@ -54,6 +65,7 @@ public:
     set(options, "pressio:thread_safe", pressio_thread_safety_multiple);
     set(options, "pressio:stability", "experimental");
     set(options, "szx_surrogate:err_bound_mode_str", keys(ERR_MODES));
+    set(options, "szx_surrogate:metric", keys(METRIC_MODES));
     
 
 
@@ -110,40 +122,44 @@ public:
       get(options, "szx_surrogate:abs_err_bound", &absErrBound);
       get(options, "szx_surrogate:rel_bound_ratio", &relBoundRatio);
       get(options, "szx_surrogate:err_bound_mode", &errBoundMode);
-      set(options, "szx_surrogate:blockSize", &blockSize);
-    set(options, "szx_surrogate:samplingStride", &samplingStride);
-    set(options, "szx_surrogate:metric", %metric_str);
+      get(options, "szx_surrogate:blockSize", &blockSize);
+      get(options, "szx_surrogate:samplingStride", &samplingStride);
 
-    std::string tmp;
-    if(get(options, "szx_surrogate:err_bound_mode_str", &tmp) == pressio_options_key_set) {
-        errBoundMode = ERR_MODES.at(tmp);
+      std::string tmp;
+      if(get(options, "szx_surrogate:err_bound_mode_str", &tmp) == pressio_options_key_set) {
+          errBoundMode = ERR_MODES.at(tmp);
+      }
+      if(get(options, "szx_surrogate:metric", &tmp) == pressio_options_key_set) {
+        metric_setting = METRIC_MODES.at(tmp);
+      }
     }
-    } catch (std::out_of_range const& ex) {
+    catch (std::out_of_range const& ex) {
       return set_error(1, ex.what());
     }
+
     return 0;
   }
 
   int compress_impl(const pressio_data* input,
                     struct pressio_data* output) override
   {
-    double eb = absErrorBound;
+    double eb = absErrBound;
     if(errBoundMode == REL) {
-        eb = relErrorBound;
+        eb = relBoundRatio;
+        printf("szx_surrogate does not support a relative error bound\n");
+        exit(0);
     }
-    switch(metric_str) {
-        "cr":
-            estCR = szx_estimate_cr_float(input->data(), eb, samplingStride, input->num_elements());
-            break;
-        "psnr":
-            estPNSR = szx_estimate_psnr_float(input->data(), eb, samplingStride, input->num_elements());
-            break;
-        "ssim":
-            estSSIM = szx_estimate_ssim_float(input->data(), eb, samplingStride, blockSize, input->dimensions(), input->num_elements());
-            break;
-        default:
-            return set_error(1, "invalid metric string, expected one of {cr, psnr, ssim}");
+    float* data = (float*) input->data();
+    if (metric_setting == CR_METRIC) {
+        estCR = szx_estimate_cr_float(data, eb, samplingStride, input->num_elements());
+    } else if (metric_setting == PSNR_METRIC) {
+        estPSNR = szx_estimate_psnr_float(data, eb, samplingStride, input->num_elements());
+    } else if (metric_setting == SSIM_METRIC) {
+        estSSIM = szx_estimate_ssim_float(data, eb, samplingStride, blockSize, const_cast<size_t*>(input->dimensions().data()), input->num_elements());
+    } else {
+        return set_error(1, "invalid metric string, expected one of {cr, psnr, ssim}");
     }
+
     return 0;
 
   }
@@ -189,9 +205,9 @@ private:
   int32_t errBoundMode = ABS;
   double absErrBound = 1e-4;
   double relBoundRatio = 0;
-  int32_t blockSize = 0;
-  int32_t samplingStride = 0;
-  char* metric_str = "cr";
+  int32_t blockSize = 128;
+  int32_t samplingStride = 15;
+  int32_t metric_setting = CR_METRIC;
   double estCR = -1;
   double estPSNR = -1;
   double estSSIM = -1;

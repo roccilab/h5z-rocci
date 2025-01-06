@@ -45,20 +45,25 @@ extern "C" {
 #define ROCCI_SSIM_METRIC 2
 #define ROCCI_AC_METRIC 3
 
-const int versionNumber[4] = {ROCCI_VER_MAJOR,ROCCI_VER_MINOR,ROCCI_VER_BUILD,ROCCI_VER_REVISION};
+extern const int versionNumber[4];
 
-const char* COMPRESSOR_STR[] = {"SZ2", "SZ3", "QOZ", "ZFP", "DR", "BG", "SZX"};
-const int COMPRESSOR_OPTIONS[] = {ROCCI_SZ2, ROCCI_SZ3, ROCCI_QOZ, ROCCI_ZFP, ROCCI_DR, ROCCI_BG, ROCCI_SZX};
+extern const char* COMPRESSOR_STR[7];
+extern const int COMPRESSOR_OPTIONS[7];
 
-const char* CMP_MODE_STR[] = {"ABS", "REL", "VR_REL", "ABS_AND_REL", "ABS_OR_REL", "PSNR", "NORM", "FIX_RATE"};
-const int CMP_MODE_OPTIONS[] = {ABS, REL, VR_REL, ABS_AND_REL, ABS_OR_REL, PSNR, NORM, FIX_RATE};
+extern const char* CMP_MODE_STR[8];
+extern const int CMP_MODE_OPTIONS[8];
+
+extern const char* METRIC_STR[3];
+extern const int METRIC_OPTIONS[3];
+
 
 
 typedef struct ROCCI_Target
 {
 	int metric; //specify the metric
-	double targetValue_lowbound;
-	double targetValue_upperbound;
+	bool do_opt;
+	double targetValue; // target value for metric
+	double tolerance; // tolerance for early stopping optimization
 } ROCCI_Target;
 
 typedef struct ROCCI_Setting
@@ -74,7 +79,7 @@ typedef struct ROCCI_Setting
 void ROCCI_Init(char* cfgFile);
 int rocciFidelity_multiFields(float** oriData, float** decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 int rocciFidelity_singleField(float* oriData, float* decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
-int roccifastSearchBestSetting (int metric, int compressorID, ROCCI_Target input, ROCCI_Setting* result);
+int roccifastSearchBestSetting (struct pressio_data* input_data, ROCCI_Target input, ROCCI_Setting* result);
 //int constuctRuntimeCompressor (ROCCI_Setting* input , pressio_compressor* output);
 
 unsigned char* ROCCI_compress_args(int dataType, void* data, size_t* outSize, int error_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double ratio, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);

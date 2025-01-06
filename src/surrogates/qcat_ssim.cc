@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-#include "qcat_ssim.h"
+#include <qcat_ssim.h>
 
 /////////////////// 1D
 

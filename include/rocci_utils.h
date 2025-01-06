@@ -3,7 +3,11 @@
 
 size_t computeNbEle(size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 
+char* append_string(const char* original, const char* append);
+
 enum pressio_dtype rocci_dtype_to_pressio_dtype(int dataType);
+
+char* get_surrogate(ROCCI_Setting rocci_config, struct pressio* library);
 
 struct pressio_compressor* get_compressor(ROCCI_Setting rocci_config, struct pressio* library);
 

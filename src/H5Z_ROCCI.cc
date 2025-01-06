@@ -649,7 +649,6 @@ static herr_t H5Z_rocci_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
 	free(cd_values);
 
 	retval = 1;
-done:
 	return retval;
 }
 
@@ -726,7 +725,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		/* decompress data */
 		if(dataType == ROCCI_FLOAT)//==0
 		{
-			float* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			float* data = (float*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 
 			free(*buf);
 			*buf = data;
@@ -734,14 +733,14 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_DOUBLE)//==1
 		{
-			double* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			double* data = (double*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 			free(*buf);
 			*buf = data;
 			*buf_size = nbEle*sizeof(double);			
 		}
 		else if(dataType == ROCCI_INT8)
 		{
-			char* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			char* data = (char*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -749,7 +748,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_UINT8)
 		{
-			unsigned char* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			unsigned char* data = (unsigned char*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -757,7 +756,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_INT16)
 		{
-			short* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			short* data = (short*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -765,7 +764,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_UINT16)
 		{
-			unsigned short* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			unsigned short* data = (unsigned short*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -773,7 +772,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_INT32)
 		{
-			int* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			int* data = (int*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -781,7 +780,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_UINT32)
 		{
-			unsigned int* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			unsigned int* data = (unsigned int*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -789,7 +788,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_INT64)
 		{
-			long* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			long* data = (long*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;
@@ -797,7 +796,7 @@ static size_t H5Z_filter_rocci(unsigned int flags, size_t cd_nelmts, const unsig
 		}
 		else if(dataType == ROCCI_UINT64)
 		{
-			unsigned long* data = ROCCI_decompress(dataType, *buf, nbytes, r5, r4, r3, r2, r1);
+			unsigned long* data = (unsigned long*) ROCCI_decompress(dataType, (char*)*buf, nbytes, r5, r4, r3, r2, r1);
 										
 			free(*buf);
 			*buf = data;

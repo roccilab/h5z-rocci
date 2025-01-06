@@ -10,9 +10,6 @@
 #ifndef _rocci_ByteToolkit_H
 #define _rocci_ByteToolkit_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdio.h>
 #include <stdint.h>
@@ -118,9 +115,6 @@ void convertULongArrayToBytes(uint64_t* states, size_t stateLength, unsigned cha
 extern size_t bytesToSize(unsigned char* bytes);
 extern void sizeToBytes(unsigned char* outBytes, size_t size);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* ----- #ifndef _ByteToolkit_H  ----- */
 

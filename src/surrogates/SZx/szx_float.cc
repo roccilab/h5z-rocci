@@ -1,5 +1,44 @@
-#include "qcat_ssim.h"
-#include "szx_float.h"
+#include <qcat_ssim.h>
+#include <SZx/szx_float.h>
+#include <math.h>
+
+short getPrecisionReqLength_double(double precision)
+{
+	ldouble lbuf;
+	lbuf.value = precision;
+	long lvalue = lbuf.lvalue;
+	
+	int expValue = (int)((lvalue & 0x7FF0000000000000) >> 52);
+	expValue -= 1023;
+//	unsigned char the1stManBit = (unsigned char)((lvalue & 0x0008000000000000) >> 51);
+//	if(the1stManBit==1)
+//		expValue--;
+	return (short)expValue;
+}
+
+void computeReqLength_float(double realPrecision, short radExpo, int *reqLength, float *medianValue) {
+    short reqExpo = getPrecisionReqLength_double(realPrecision);
+    *reqLength = 9 + radExpo - reqExpo + 1; //radExpo-reqExpo == reqMantiLength
+    if (*reqLength < 9)
+        *reqLength = 9;
+    if (*reqLength > 32) {
+        *reqLength = 32;
+        *medianValue = 0;
+    }
+}
+
+short getExponent_float(float value)
+{
+	//int ivalue = floatToBigEndianInt(value);
+
+	lfloat lbuf;
+	lbuf.value = value;
+	int ivalue = lbuf.ivalue;
+	
+	int expValue = (ivalue & 0x7F800000) >> 23;
+	expValue -= 127;
+	return (short)expValue;
+}
 
 // return float value with fewer bits of precision in the mantissa
 float lose_mantissa_bits(float value, int bits_to_lose) {
@@ -132,9 +171,6 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers, size_t dims[], size_t n_d
 		float medianValue = medianArray[i];
 		float radius = radiusArray[i];
 		float *data = &buffer[offset];
-
-//		if(i==463)
-//			printf("i=%zu\n", i);
 		
 		if (radius <= errorBound) {
 			nbConstantBlocks++;
@@ -159,7 +195,6 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers, size_t dims[], size_t n_d
 				reqBytesLength++;
 			}
 			
-			//printf("%d\n",reqBytesLength);
 			*sumReqNbBytes+=	reqBytesLength;
 
             // we only do bit truncation here, so the data will simply by bitshifted
@@ -172,8 +207,6 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers, size_t dims[], size_t n_d
 			// *sum_actual_leadNumbers += s_actual_leadNumbers;			
 		}		
 	}
-
-    printf("NUM CONSTANT BLOCKS: %i\n", nbConstantBlocks);
 	
     double estimatedSSIM;
     if(n_dims == 1){
@@ -295,9 +328,6 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 			*sum_actual_leadNumbers += s_actual_leadNumbers;			
 		}		
 	}
-
-    printf("NUM CONSTANT BLOCKS: %i\n", nbConstantBlocks);
-    printf("NUM NONCONSTANT BLOCKS: %i\n", nbNonConstantBlocks);
 	
 	float avgReqNbBytes = 1.0*(*sumReqNbBytes)/(nbSampledBlocks - nbConstantBlocks);
 	float avg_actual_lead = 1.0*(*sum_actual_leadNumbers)/(nbSampledBlocks - nbConstantBlocks);
@@ -305,11 +335,9 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 	float p_lambda = 1.0*nbConstantBlocks/nbSampledBlocks;
 	
     size_t samplenbEle = blockSize * nbSampledBlocks;
-	float mse = sq_err / nbEle;//(samplenbEle);
-    printf("SQERR %f, MSE %.10f, MAX %f, SampleNBELE %i\n", sq_err, mse, maxVal, samplenbEle);
+	float mse = sq_err / nbEle;
     // for the case where mse == 0 we add a small constant to avoid numerical errors
     float eps = 1e-16;
-    // float value_range = maxVal - minVal;
     float estimatedPSNR = -20.0*log10((sqrt(mse) / value_range) + eps);
 
 	//printf("----> sum_actual_leadNumbers=%zu, nbSampledBlocks = %zu, nbConstantBlocks = %zu, sumReqNbBytes = %zu, avgReqNbBytes=%f, avg_actual_lead=%f, p_lambda=%f\n", *sum_actual_leadNumbers, nbSampledBlocks, nbConstantBlocks, *sumReqNbBytes, avgReqNbBytes, avg_actual_lead, p_lambda);

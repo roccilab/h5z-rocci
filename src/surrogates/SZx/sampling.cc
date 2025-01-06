@@ -1,4 +1,4 @@
-#include "sampling.h"
+#include <SZx/sampling.h>
 
 void sample_1d_float(float* data, size_t blocksize, size_t sample_stride, size_t dims[], float** outBuffer, size_t* outSize, size_t sample_dims[]) {
     // Calculate the number of blocks
@@ -7,7 +7,7 @@ void sample_1d_float(float* data, size_t blocksize, size_t sample_stride, size_t
     // Calculate the size of the output buffer
     *outSize = ceil((float)num_blocks / sample_stride) * blocksize;
 	size_t sampleBufferSize = *outSize;
-	*outBuffer = malloc(sizeof(float) * (sampleBufferSize));
+	*outBuffer = (float*)malloc(sizeof(float) * (sampleBufferSize));
 
     // Initialize sample dimension
     sample_dims[0] = *outSize;
@@ -41,7 +41,7 @@ void sample_2d_float(float* data, size_t blocksize, size_t sample_stride, size_t
     // Calculate the size of the output buffer
     *outSize = num_blocks_x * num_blocks_y * blocksize * blocksize;
 	size_t sampleBufferSize = *outSize;
-	*outBuffer = malloc(sizeof(float) * (sampleBufferSize));
+	*outBuffer = (float*)malloc(sizeof(float) * (sampleBufferSize));
 
 
     // Initialize sample dimensions
@@ -88,7 +88,7 @@ void sample_3d_float(float* data, size_t blocksize, size_t sample_stride, size_t
     // Calculate the size of the output buffer
     *outSize = num_blocks_x * num_blocks_y * num_blocks_z * blocksize * blocksize * blocksize;
 	size_t sampleBufferSize = *outSize;
-	*outBuffer = malloc(sizeof(float) * (sampleBufferSize));
+	*outBuffer = (float*)malloc(sizeof(float) * (sampleBufferSize));
 
     // Initialize sample dimensions
     sample_dims[0] = num_blocks_x * blocksize;
