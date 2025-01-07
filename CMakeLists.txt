@@ -17,6 +17,12 @@ add_library(SECRE SHARED
   src/surrogates/SZx/sampling.cc
   src/surrogates/SZx/szx_float.cc
   src/surrogates/SZx/SZxSurrogate.cc
+
+  src/surrogates/SZ3/estimate_cr.cc
+  src/surrogates/SZ3/estimate_psnr.cc
+  src/surrogates/SZ3/estimate_ssim.cc
+  src/surrogates/SZ3/CustomHuffmanEncoder.cc
+  src/surrogates/SZ3/SZ3Surrogate.cc
 )
 target_include_directories(
   SECRE

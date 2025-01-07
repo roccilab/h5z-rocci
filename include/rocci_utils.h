@@ -7,7 +7,7 @@ char* append_string(const char* original, const char* append);
 
 enum pressio_dtype rocci_dtype_to_pressio_dtype(int dataType);
 
-char* get_surrogate(ROCCI_Setting rocci_config, struct pressio* library);
+char* get_surrogate(ROCCI_Setting rocci_config);
 
 struct pressio_compressor* get_compressor(ROCCI_Setting rocci_config, struct pressio* library);
 

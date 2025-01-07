@@ -102,12 +102,12 @@ struct pressio_compressor* get_compressor(ROCCI_Setting rocci_config, struct pre
 }
 
 // get SECRE surrogate plugin for compressor
-char* get_surrogate(ROCCI_Setting rocci_config, struct pressio* library){
+char* get_surrogate(ROCCI_Setting rocci_config){
 	char* compressor_id;
 	switch(rocci_config.compressorID){
-		// case ROCCI_SZ3:
-		// 	compressor_id = "sz3";
-		// 	break;
+		case ROCCI_SZ3:
+			compressor_id = "sz3_surrogate";
+			break;
 		// case ROCCI_ZFP:
 		// 	compressor_id = "zfp";
 		// 	break;

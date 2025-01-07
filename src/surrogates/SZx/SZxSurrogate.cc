@@ -1,8 +1,9 @@
+#include <map>
 #include <sstream>
-#include <SZx/estimate_metric.h>
 #include <std_compat/memory.h>
 #include <libpressio_ext/cpp/libpressio.h>
-#include <map>
+#include <SZx/estimate_metric.h>
+
 
 namespace libpressio { namespace szx_surrogate {
 
@@ -147,7 +148,7 @@ public:
     if(errBoundMode == REL) {
         eb = relBoundRatio;
         printf("szx_surrogate does not support a relative error bound\n");
-        exit(0);
+        exit(1);
     }
     float* data = (float*) input->data();
     if (metric_setting == CR_METRIC) {

@@ -161,7 +161,7 @@ int rocciFidelity_singleField(float* oriData, float* decData, float** fidelity, 
 int roccifastSearchBestSetting(struct pressio_data* input_data, ROCCI_Target input, ROCCI_Setting* result)
 {
 	struct pressio* library = pressio_instance();
-	char* surrogate_id = get_surrogate(*result, library);
+	char* surrogate_id = get_surrogate(*result);
 	if(surrogate_id == NULL) {
 		printf("Warning: No surrogate available for the given compressor, skipping parameter optimization.\n");
 		return 0;
