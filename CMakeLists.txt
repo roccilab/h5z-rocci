@@ -23,6 +23,10 @@ add_library(SECRE SHARED
   src/surrogates/SZ3/estimate_ssim.cc
   src/surrogates/SZ3/CustomHuffmanEncoder.cc
   src/surrogates/SZ3/SZ3Surrogate.cc
+
+  src/surrogates/ZFP/estimate_metric.cc
+  src/surrogates/ZFP/ZFPSurrogate.cc
+
 )
 target_include_directories(
   SECRE
