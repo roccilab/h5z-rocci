@@ -7,26 +7,39 @@ find_package(LibPressioOpt REQUIRED)
 find_package(LibDistributed REQUIRED)
 find_library(UUID_LIBRARY NAMES uuid libuuid REQUIRED)
 
-# include(CMakePrintHelpers)
-# message(HDF5 DIRS:)
-# cmake_print_variables(HDF5_LIBRARIES)
-# cmake_print_variables(HDF5_INCLUDE_DIRS)
+option(USE_SZX "Build SECRE SZx Surrogate" ON)
+option(USE_SZ3 "Build SECRE SZ3 Surrogate" ON)
+option(USE_ZFP "Build SECRE ZFP Surrogate" ON)
+
+if(USE_SZX)
+  list(APPEND secre_src 
+    src/surrogates/SZx/estimate_metric.cc
+    src/surrogates/SZx/sampling.cc
+    src/surrogates/SZx/szx_float.cc
+    src/surrogates/SZx/SZxSurrogate.cc
+  )
+endif()
+
+if(USE_SZ3)
+  list(APPEND secre_src 
+    src/surrogates/SZ3/estimate_cr.cc
+    src/surrogates/SZ3/estimate_psnr.cc
+    src/surrogates/SZ3/estimate_ssim.cc
+    src/surrogates/SZ3/CustomHuffmanEncoder.cc
+    src/surrogates/SZ3/SZ3Surrogate.cc
+  )
+endif()
+
+if(USE_ZFP)
+  list(APPEND secre_src 
+    src/surrogates/ZFP/estimate_metric.cc
+    src/surrogates/ZFP/ZFPSurrogate.cc
+  )
+endif()
+
 add_library(SECRE SHARED
   src/surrogates/qcat_ssim.cc
-  src/surrogates/SZx/estimate_metric.cc
-  src/surrogates/SZx/sampling.cc
-  src/surrogates/SZx/szx_float.cc
-  src/surrogates/SZx/SZxSurrogate.cc
-
-  src/surrogates/SZ3/estimate_cr.cc
-  src/surrogates/SZ3/estimate_psnr.cc
-  src/surrogates/SZ3/estimate_ssim.cc
-  src/surrogates/SZ3/CustomHuffmanEncoder.cc
-  src/surrogates/SZ3/SZ3Surrogate.cc
-
-  src/surrogates/ZFP/estimate_metric.cc
-  src/surrogates/ZFP/ZFPSurrogate.cc
-
+  ${secre_src}
 )
 target_include_directories(
   SECRE
