@@ -161,24 +161,27 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers, size_t dims[], size_t n_d
 	float block_cost = 33.0/8;	
 	size_t i = 0, j = 0;
 	*sumReqNbBytes = 0;
-    float* decBuffer = (float*)malloc(sizeof(float) * nbEle);
-    size_t decIndex = 0;
+	float* decBuffer = (float*)malloc(sizeof(float) * nbEle);
+	size_t decIndex = 0;
 
-    float ssimSum = 0;
+	float ssimSum = 0;
 	for(i=0;i<nbSampledBlocks;i++) 
 	{
 		size_t offset = i*blockSize;
 		float medianValue = medianArray[i];
 		float radius = radiusArray[i];
 		float *data = &buffer[offset];
+
+//		if(i==463)
+//			printf("i=%zu\n", i);
 		
 		if (radius <= errorBound) {
 			nbConstantBlocks++;
 
-            // simulate constant block
-            for(j = 0; j < blockSize; j++){
-                decBuffer[decIndex++] = medianValue;
-            }
+			// simulate constant block
+			for(j = 0; j < blockSize; j++){
+				decBuffer[decIndex++] = medianValue;
+			}
 
 		}
 		else //non-constant
@@ -195,29 +198,33 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers, size_t dims[], size_t n_d
 				reqBytesLength++;
 			}
 			
+			//printf("%d\n",reqBytesLength);
 			*sumReqNbBytes+=	reqBytesLength;
 
-            // we only do bit truncation here, so the data will simply by bitshifted
+			// we only do bit truncation here, so the data will simply by bitshifted
 			for(j=0;j<blockSize;j++)
 			{
-                float data_shifted = lose_mantissa_bits(data[j], rightShiftBits);
-                decBuffer[decIndex++] = data_shifted;
+				float data_shifted = lose_mantissa_bits(data[j], rightShiftBits);
+				decBuffer[decIndex++] = data_shifted;
 			}
 
 			// *sum_actual_leadNumbers += s_actual_leadNumbers;			
 		}		
 	}
+
+	// printf("NUM CONSTANT BLOCKS: %i\n", nbConstantBlocks);
 	
-    double estimatedSSIM;
-    if(n_dims == 1){
-        estimatedSSIM = SSIM_1d_windowed_float(buffer, decBuffer, dims[0], 8, 8);
-    }
-    else if (n_dims == 2){
-        estimatedSSIM = SSIM_2d_windowed_float(buffer, decBuffer, dims[1], dims[0], 8,8, 8,8);
-    }
-    else { // n_dims == 3
-        estimatedSSIM = SSIM_3d_windowed_float(buffer, decBuffer, dims[2], dims[1], dims[0], 8,8,8, 8,8,8);
-    }
+	double estimatedSSIM;
+	// printf("num_dims %i\n", n_dims);
+	if(n_dims == 1){
+		estimatedSSIM = SSIM_1d_windowed_float(buffer, decBuffer, dims[0], 8, 8);
+	}
+	else if (n_dims == 2){
+		estimatedSSIM = SSIM_2d_windowed_float(buffer, decBuffer, dims[1], dims[0], 8,8, 8,8);
+	}
+	else { // n_dims == 3
+		estimatedSSIM = SSIM_3d_windowed_float(buffer, decBuffer, dims[2], dims[1], dims[0], 8,8,8, 8,8,8);
+	}
 
 	//printf("----> sum_actual_leadNumbers=%zu, nbSampledBlocks = %zu, nbConstantBlocks = %zu, sumReqNbBytes = %zu, avgReqNbBytes=%f, avg_actual_lead=%f, p_lambda=%f\n", *sum_actual_leadNumbers, nbSampledBlocks, nbConstantBlocks, *sumReqNbBytes, avgReqNbBytes, avg_actual_lead, p_lambda);
 	return estimatedSSIM;	
@@ -228,23 +235,31 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 {
 	size_t nbSampledBlocks = nbEle/(blockSize*samplingRate); //ignored the last remainder block
 	size_t nbConstantBlocks = 0;
-    size_t nbNonConstantBlocks = 0;
+	size_t nbNonConstantBlocks = 0;
 	*sum_actual_leadNumbers = 0;
 	float metadata = 13.0*blockSize/nbEle;
 	float block_cost = 33.0/8;	
 	size_t i = 0, j = 0;
 	*sumReqNbBytes = 0;
 
-    float maxVal = buffer[0];
-    float minVal = buffer[0];
-    float sq_err = 0;
+	float maxVal = buffer[0];
+	float minVal = buffer[0];
+	float sq_err = 0;
 
 	for(i=0;i<nbSampledBlocks;i++) //ignored the last remainder block
 	{
 		size_t offset = i*blockSize;
 		float medianValue = medianArray[i];
 		float radius = radiusArray[i];
+
 		float *data = &buffer[offset];
+
+		// if(minVal > min){
+		//     minVal = min;
+		// }
+		// if(maxVal < max){
+		//     maxVal = max;
+		// }
 
 //		if(i==463)
 //			printf("i=%zu\n", i);
@@ -252,22 +267,15 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 		if (radius <= errorBound) { // constant block
 			nbConstantBlocks++;
 
-            if(minVal > medianValue){
-                minVal = medianValue;
-            }
-            if(maxVal < medianValue){
-                maxVal = medianValue;
-            }
-
-            // update mse
-            for(int k = 0; k < blockSize; k++){
-                sq_err += pow((data[k] - medianValue), 2);
-            }
+			// update mse
+			for(int k = 0; k < blockSize; k++){
+				sq_err += pow((data[k] - medianValue), 2);
+			}
 
 		}
 		else //non-constant
 		{
-            nbNonConstantBlocks++;
+			nbNonConstantBlocks++;
 			int reqLength;
 			short radExpo = getExponent_float(radius);
 			computeReqLength_float(errorBound, radExpo, &reqLength, &medianValue);
@@ -290,24 +298,24 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 			//int leadingNum_Array[128];
 			int s_actual_leadNumbers = 0;
 
-            // we only do bit truncation here, so the data will simply by bitshifted
+			// we only do bit truncation here, so the data will simply by bitshifted
 			for(j=0;j<blockSize;j++)
 			{
-                lfBuf_cur.value = data[j] - medianValue;
+				lfBuf_cur.value = data[j] - medianValue;
 
-                lfBuf_cur.ivalue = lfBuf_cur.ivalue >> rightShiftBits;
+				lfBuf_cur.ivalue = lfBuf_cur.ivalue >> rightShiftBits;
 
-                lfBuf_pre.ivalue = lfBuf_cur.ivalue ^ lfBuf_pre.ivalue;
+				lfBuf_pre.ivalue = lfBuf_cur.ivalue ^ lfBuf_pre.ivalue;
 				
 				leadingNum = 0;
-                if (lfBuf_pre.ivalue >> 8 == 0)
-                    leadingNum = 3;
-                else if (lfBuf_pre.ivalue >> 16 == 0)
-                    leadingNum = 2;
-                else if (lfBuf_pre.ivalue >> 24 == 0)
-                    leadingNum = 1;
-                   
-               // leadingNum_Array[j] = leadingNum;    
+				if (lfBuf_pre.ivalue >> 8 == 0)
+					leadingNum = 3;
+				else if (lfBuf_pre.ivalue >> 16 == 0)
+					leadingNum = 2;
+				else if (lfBuf_pre.ivalue >> 24 == 0)
+					leadingNum = 1;
+					
+				// leadingNum_Array[j] = leadingNum;    
 				if(leadingNum >= reqBytesLength)
 					s_actual_leadNumbers += reqBytesLength;
 				else
@@ -315,14 +323,8 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 					
 				lfBuf_pre = lfBuf_cur;	            
 
-                float data_shifted = lose_mantissa_bits(data[j], rightShiftBits);
-                if(minVal > data_shifted){
-                    minVal = data_shifted;
-                }
-                if(maxVal < data_shifted){
-                    maxVal = data_shifted;
-                }
-                sq_err += pow(errorBound, 2); //pow((data_shifted - data[j]), 2);
+				float data_shifted = lose_mantissa_bits(data[j], rightShiftBits);
+				sq_err += pow(errorBound, 2); //pow((data_shifted - data[j]), 2);
 			}
 
 			*sum_actual_leadNumbers += s_actual_leadNumbers;			
@@ -334,11 +336,13 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 	
 	float p_lambda = 1.0*nbConstantBlocks/nbSampledBlocks;
 	
-    size_t samplenbEle = blockSize * nbSampledBlocks;
-	float mse = sq_err / nbEle;
-    // for the case where mse == 0 we add a small constant to avoid numerical errors
-    float eps = 1e-16;
-    float estimatedPSNR = -20.0*log10((sqrt(mse) / value_range) + eps);
+	size_t samplenbEle = blockSize * nbSampledBlocks;
+	float mse = sq_err / nbEle;//(samplenbEle);
+	// printf("SQERR %f, MSE %.10f, MAX %f, SampleNBELE %i\n", sq_err, mse, maxVal, samplenbEle);
+	// for the case where mse == 0 we add a small constant to avoid numerical errors
+	float eps = 1e-16;
+	// float value_range = maxVal - minVal;
+	float estimatedPSNR = -20.0*log10((sqrt(mse) / value_range) + eps);
 
 	//printf("----> sum_actual_leadNumbers=%zu, nbSampledBlocks = %zu, nbConstantBlocks = %zu, sumReqNbBytes = %zu, avgReqNbBytes=%f, avg_actual_lead=%f, p_lambda=%f\n", *sum_actual_leadNumbers, nbSampledBlocks, nbConstantBlocks, *sumReqNbBytes, avgReqNbBytes, avg_actual_lead, p_lambda);
 	return estimatedPSNR;	
@@ -391,21 +395,21 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 			int s_actual_leadNumbers = 0;
 			for(j=0;j<blockSize;j++)
 			{
-                lfBuf_cur.value = data[j] - medianValue;
+				lfBuf_cur.value = data[j] - medianValue;
 
-                lfBuf_cur.ivalue = lfBuf_cur.ivalue >> rightShiftBits;
+				lfBuf_cur.ivalue = lfBuf_cur.ivalue >> rightShiftBits;
 
-                lfBuf_pre.ivalue = lfBuf_cur.ivalue ^ lfBuf_pre.ivalue;
+				lfBuf_pre.ivalue = lfBuf_cur.ivalue ^ lfBuf_pre.ivalue;
 				
 				leadingNum = 0;
-                if (lfBuf_pre.ivalue >> 8 == 0)
-                    leadingNum = 3;
-                else if (lfBuf_pre.ivalue >> 16 == 0)
-                    leadingNum = 2;
-                else if (lfBuf_pre.ivalue >> 24 == 0)
-                    leadingNum = 1;
-                   
-               // leadingNum_Array[j] = leadingNum;    
+				if (lfBuf_pre.ivalue >> 8 == 0)
+					leadingNum = 3;
+				else if (lfBuf_pre.ivalue >> 16 == 0)
+					leadingNum = 2;
+				else if (lfBuf_pre.ivalue >> 24 == 0)
+					leadingNum = 1;
+					
+				// leadingNum_Array[j] = leadingNum;    
 				if(leadingNum >= reqBytesLength)
 					s_actual_leadNumbers += reqBytesLength;
 				else
@@ -422,6 +426,12 @@ size_t *sumReqNbBytes, size_t *sum_actual_leadNumbers)
 	float avg_actual_lead = 1.0*(*sum_actual_leadNumbers)/(nbSampledBlocks - nbConstantBlocks);
 	
 	float p_lambda = 1.0*nbConstantBlocks/nbSampledBlocks;
+
+	if(nbSampledBlocks == nbConstantBlocks) {
+		// avoid Nan
+		avgReqNbBytes = sizeof(float);
+		avg_actual_lead = 0.0;
+	}
 	
 	float estimatedCR = 4*blockSize/(metadata + block_cost+(1 + (0.25+avgReqNbBytes)*blockSize - avg_actual_lead)*(1 - p_lambda));
 	//printf("----> sum_actual_leadNumbers=%zu, nbSampledBlocks = %zu, nbConstantBlocks = %zu, sumReqNbBytes = %zu, avgReqNbBytes=%f, avg_actual_lead=%f, p_lambda=%f\n", *sum_actual_leadNumbers, nbSampledBlocks, nbConstantBlocks, *sumReqNbBytes, avgReqNbBytes, avg_actual_lead, p_lambda);

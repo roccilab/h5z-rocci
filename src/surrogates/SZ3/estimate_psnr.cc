@@ -79,7 +79,7 @@ public:
             // This code block collects compression errors from a higher level into cmpr_err
             // it is observed that most levels have similar error distribution
             sample_stride = input_stride;
-            size_t n_samples = 1000;
+            size_t n_samples = 5000;
             cmpr_err.clear();
             square_err.clear();
             cmpr_err.reserve(n_samples);
@@ -91,8 +91,8 @@ public:
                 if (cmpr_err.size() > n_samples) {
                     break;
                 }
-                cmpr_err.clear();
-                square_err.clear();
+                // cmpr_err.clear();
+                // square_err.clear();
             }
         }
 

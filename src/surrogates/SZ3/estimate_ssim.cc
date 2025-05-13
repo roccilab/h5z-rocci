@@ -81,7 +81,8 @@ public:
             // This code block collects compression errors from a higher level into cmpr_err
             // it is observed that most levels have similar error distribution
             sample_stride = input_stride;//1;
-            size_t n_samples = 1000;
+            size_t n_samples = 5000;
+            // printf("sampleerr\n");
             cmpr_err.clear();
             square_err.clear();
             cmpr_err.reserve(n_samples);
@@ -93,18 +94,9 @@ public:
                 if (cmpr_err.size() > n_samples) {
                     break;
                 }
-                cmpr_err.clear();
-                square_err.clear();
+                // cmpr_err.clear();
+                // square_err.clear();
             }
-        }
-
-        gen = std::mt19937(rd());
-        dist = std::uniform_int_distribution<>(0, cmpr_err.size());
-
-        float* decData = new float[conf.num];
-        for(int k = 0; k < conf.num; k++){
-            // add error to simulate decompression
-            decData[k] = s(data[k]);
         }
 
         // sample data at multiple blocks, compute ssim between data and simulated decompressed data
@@ -114,35 +106,57 @@ public:
         int samplingStride = input_stride;
         size_t sample_dims[3];
         size_t sampleNbEle;
+        // printf("sampledata\n");
         if(conf.N == 1){
             sample_1d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_data, &sampleNbEle, sample_dims);
-            sample_1d_float(decData, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
+            // sample_1d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
         }
         else if (conf.N == 2){
             sample_2d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_data, &sampleNbEle, sample_dims);
-            sample_2d_float(decData, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
+            // sample_2d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
         }
         else{ // conf.N == 3
             sample_3d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_data, &sampleNbEle, sample_dims);
-            sample_3d_float(decData, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
+            // sample_3d_float(data, blockSize, samplingStride, conf.dims.data(), &sample_decData, &sampleNbEle, sample_dims);
         }
 
+        gen = std::mt19937(rd());
+        dist = std::uniform_int_distribution<>(0, cmpr_err.size());
+
+        // printf("perturbdata\n");
+        sample_decData = new float[sampleNbEle];
+        for(int k = 0; k < sampleNbEle; k++){
+            // add error to simulate decompression
+            sample_decData[k] = s(sample_data[k]);
+        }
+
+        // decData = new float[sampleNbEle];
+        // for(int k = 0; k < sampleNbEle; k++){
+        //     // add error to simulate decompression
+        //     decData[k] = s(sample_data[k]);
+        // }
 
         double estSSIM;
+        // printf("dossimest\n");
         if(conf.N == 1){
+            // estSSIM = SSIM_1d_windowed_float(sample_data, decData, sample_dims[0], 8, 8);
             estSSIM = SSIM_1d_windowed_float(sample_data, sample_decData, sample_dims[0], 8, 8);
         }
         else if (conf.N == 2){
+            // estSSIM = SSIM_2d_windowed_float(sample_data, decData, sample_dims[1], sample_dims[0], 8,8, 8,8);
             estSSIM = SSIM_2d_windowed_float(sample_data, sample_decData, sample_dims[1], sample_dims[0], 8,8, 8,8);
         }
         else{ // conf.N == 3
+            // estSSIM = SSIM_3d_windowed_float(sample_data, decData, sample_dims[2], sample_dims[1], sample_dims[0], 8,8,8, 8,8,8);
             estSSIM = SSIM_3d_windowed_float(sample_data, sample_decData, sample_dims[2], sample_dims[1], sample_dims[0], 8,8,8, 8,8,8);
         }
 
 
         double sampling_dur = sample_timer.stop("sampling");
+        // printf("SAMPLING: bs=%i, stride=%i, estssim=%f\n", blockSize, input_stride, estSSIM);
+        
         delete[] sample_data;
-        delete[] decData;
+        // delete[] decData;
         delete[] sample_decData;
 
         return {estSSIM, sampling_dur};

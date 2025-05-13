@@ -79,13 +79,14 @@ public:
             // This code block collects compression errors from a higher level into cmpr_err
             // it is observed that most levels have similar error distribution
             sample_stride = 1;
+            int n_samples = 5000;
             cmpr_err.clear();
-            cmpr_err.reserve(1000);
+            cmpr_err.reserve(n_samples);
             for (uint level = interpolation_level; level > 1 && level <= interpolation_level; level--) {
                 size_t stride = 1U << (level - 1);
                 block_interpolation(data, begin_idx, end_idx, PB_predict_collect_err,
                                     interpolators[conf.interpAlgo], conf.interpDirection, stride);
-                if (cmpr_err.size() > 1000) {
+                if (cmpr_err.size() > n_samples) {
                     break;
                 }
                 cmpr_err.clear();
