@@ -8,7 +8,7 @@
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/FileUtil.hpp"
 #include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/quantizer/IntegerQuantizer.hpp"
+#include "SZ3/quantizer/LinearQuantizer.hpp"
 #include "SZ3/lossless/Lossless_bypass.hpp"
 #include "SZ3/utils/Iterator.hpp"
 #include "SZ3/utils/Extraction.hpp"
@@ -33,12 +33,12 @@ public:
     SZInterpolationSSIMEstimator(Quantizer quantizer, Encoder encoder, Lossless lossless) :
             quantizer(quantizer), encoder(encoder), lossless(lossless) {
 
-        static_assert(std::is_base_of<concepts::QuantizerInterface<T>, Quantizer>::value,
+        static_assert(std::is_base_of<concepts::QuantizerInterface<T, int>, Quantizer>::value,
                       "must implement the quatizer interface");
         static_assert(std::is_base_of<concepts::EncoderInterface<int>, Encoder>::value,
                       "must implement the encoder interface");
-        static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
-                      "must implement the lossless interface");
+        // static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
+        //               "must implement the lossless interface");
     }
 
     std::vector<int> get_quant_inds() {
@@ -178,7 +178,7 @@ private:
 
     //quantize and record the quantization bins
     inline void quantize(size_t idx, T &d, T pred) {
-        quant_inds.push_back(quantizer.quantize(d, pred));
+        quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
     }
 
     //quantize and record compression error
