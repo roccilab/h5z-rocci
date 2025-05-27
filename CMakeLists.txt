@@ -3,6 +3,7 @@ project(H5Z_ROCCI CXX C)
 find_package(HDF5 REQUIRED)
 find_package(std_compat REQUIRED)
 find_package(LibPressio REQUIRED)
+find_package(LibPressioTools REQUIRED)
 find_package(LibPressioOpt REQUIRED)
 find_package(LibDistributed REQUIRED)
 find_library(UUID_LIBRARY NAMES uuid libuuid REQUIRED)
@@ -91,6 +92,8 @@ target_include_directories(
 if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
+
+add_subdirectory(tools)
 
 install(TARGETS hdf5rocci EXPORT HDF5ROCCI
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
