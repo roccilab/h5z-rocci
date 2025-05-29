@@ -1,5 +1,6 @@
 #include <map>
 #include <sstream>
+#include <algorithm>
 #include <std_compat/memory.h>
 #include <libpressio_ext/cpp/libpressio.h>
 #include <SZx/estimate_metric.h>
@@ -156,7 +157,8 @@ public:
     } else if (metric_setting == PSNR_METRIC) {
         estPSNR = szx_estimate_psnr_float(data, eb, samplingStride, input->num_elements());
     } else if (metric_setting == SSIM_METRIC) {
-        estSSIM = szx_estimate_ssim_float(data, eb, samplingStride, blockSize, const_cast<size_t*>(input->dimensions().data()), input->num_elements());
+        std::vector<size_t> input_dims(input->dimensions().rbegin(), input->dimensions().rend());
+        estSSIM = szx_estimate_ssim_float(data, eb, samplingStride, blockSize, const_cast<size_t*>(input_dims.data()), input->num_elements());
     } else {
         return set_error(1, "invalid metric string, expected one of {cr, psnr, ssim}");
     }

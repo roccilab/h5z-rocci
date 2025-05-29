@@ -592,7 +592,7 @@ double estimate_compress(Config conf, T *data, double abs, int stride) {
 	int numBins = conf.quantbinCnt / 2;
 
     T* data_copy = new T[conf.num];
-    memcpy(data_copy, data, conf.num);
+    memcpy(data_copy, data, conf.num * sizeof(T));
 
     SZInterpolationCREstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
             SZ3::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2),
