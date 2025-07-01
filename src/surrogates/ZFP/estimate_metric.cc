@@ -3,11 +3,12 @@
 #include <qcat_ssim.h>
 #include <iostream>
 #include <math.h>
+#include <algorithm>
 
 
 double zfp_estimate_cr_float(const struct pressio_data* input, double eb, double sample_ratio) {
     assert(input->num_dimensions() < 4);
-    std::vector<size_t> dims = input->dimensions();
+    std::vector<size_t> dims(input->dimensions().rbegin(), input->dimensions().rend());
       size_t sample_num;
       std::vector<size_t> sample_dims;
       std::vector<float> sample_data;
@@ -72,7 +73,7 @@ double calc_psnr(float* ori, float* other, size_t nbEle){
 
 double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, double sample_ratio) {
     assert(input->num_dimensions() < 4);
-    std::vector<size_t> dims = input->dimensions();
+    std::vector<size_t> dims(input->dimensions().rbegin(), input->dimensions().rend());
       size_t sample_num;
       std::vector<size_t> sample_dims;
       std::vector<float> sample_data;
@@ -121,7 +122,7 @@ double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, doub
 
 double zfp_estimate_ssim_float(const struct pressio_data* input, double eb, double sample_ratio) {
     assert(input->num_dimensions() < 4);
-    std::vector<size_t> dims = input->dimensions();
+    std::vector<size_t> dims(input->dimensions().rbegin(), input->dimensions().rend());
       size_t sample_num;
       std::vector<size_t> sample_dims;
       std::vector<float> sample_data;

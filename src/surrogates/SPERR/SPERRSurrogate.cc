@@ -3,10 +3,10 @@
 #include <algorithm>
 #include <std_compat/memory.h>
 #include <libpressio_ext/cpp/libpressio.h>
-#include <SZx/estimate_metric.h>
+#include <SPERR/estimate_metric.h>
 
 
-namespace libpressio { namespace szx_surrogate {
+namespace libpressio { namespace sperr_surrogate {
 
   #define ABS 0
   #define REL 1
@@ -35,7 +35,7 @@ namespace libpressio { namespace szx_surrogate {
     return k;
   }
 
-class szx_surrogate_plugin : public libpressio_compressor_plugin {
+class sperr_surrogate_plugin : public libpressio_compressor_plugin {
 public:
   struct pressio_options get_options_impl() const override
   {
@@ -51,13 +51,13 @@ public:
       set_type(options, "pressio:rel", pressio_option_double_type);
     }
 
-    set(options, "szx_surrogate:abs_err_bound", absErrBound);
-    set(options, "szx_surrogate:rel_bound_ratio", relBoundRatio);
-    set(options, "szx_surrogate:err_bound_mode", errBoundMode);
-    set(options, "szx_surrogate:blockSize", blockSize);
-    set(options, "szx_surrogate:samplingStride", samplingStride);
-    set_type(options, "szx_surrogate:metric", pressio_option_charptr_type);
-    set_type(options, "szx_surrogate:err_bound_mode_str", pressio_option_charptr_type);
+    set(options, "sperr_surrogate:abs_err_bound", absErrBound);
+    set(options, "sperr_surrogate:rel_bound_ratio", relBoundRatio);
+    set(options, "sperr_surrogate:err_bound_mode", errBoundMode);
+    set(options, "sperr_surrogate:blockSize", blockSize);
+    set(options, "sperr_surrogate:samplingRate", samplingRate);
+    set_type(options, "sperr_surrogate:metric", pressio_option_charptr_type);
+    set_type(options, "sperr_surrogate:err_bound_mode_str", pressio_option_charptr_type);
     return options;
   }
 
@@ -66,30 +66,30 @@ public:
     struct pressio_options options;
     set(options, "pressio:thread_safe", pressio_thread_safety_multiple);
     set(options, "pressio:stability", "experimental");
-    set(options, "szx_surrogate:err_bound_mode_str", keys(ERR_MODES));
-    set(options, "szx_surrogate:metric", keys(METRIC_MODES));
+    set(options, "sperr_surrogate:err_bound_mode_str", keys(ERR_MODES));
+    set(options, "sperr_surrogate:metric", keys(METRIC_MODES));
     
 
 
     set(options, "predictors:error_dependent", std::vector<std::string>{
     "pressio:abs",
-    "szx_surrogate:abs_err_bound",
-    "szx_surrogate:rel_bound_ratio",
-    "szx_surrogate:err_bound_mode",
-    "szx_surrogate:err_bound_mode_str",
-    "szx_surrogate:blockSize",
-    "szx_surrogate:samplingStride",
-    "szx_surrogate:metric",
+    "sperr_surrogate:abs_err_bound",
+    "sperr_surrogate:rel_bound_ratio",
+    "sperr_surrogate:err_bound_mode",
+    "sperr_surrogate:err_bound_mode_str",
+    "sperr_surrogate:blockSize",
+    "sperr_surrogate:samplingRate",
+    "sperr_surrogate:metric",
     });
       set(options, "predictors:error_agnostic", std::vector<std::string>{
     "pressio:abs",
-    "szx_surrogate:abs_err_bound",
-    "szx_surrogate:rel_bound_ratio",
-    "szx_surrogate:err_bound_mode",
-    "szx_surrogate:err_bound_mode_str",
-    "szx_surrogate:blockSize",
-    "szx_surrogate:samplingStride",
-    "szx_surrogate:metric",
+    "sperr_surrogate:abs_err_bound",
+    "sperr_surrogate:rel_bound_ratio",
+    "sperr_surrogate:err_bound_mode",
+    "sperr_surrogate:err_bound_mode_str",
+    "sperr_surrogate:blockSize",
+    "sperr_surrogate:samplingRate",
+    "sperr_surrogate:metric",
     });
 
     return options;
@@ -98,14 +98,14 @@ public:
   struct pressio_options get_documentation_impl() const override
   {
     struct pressio_options options;
-    set(options, "pressio:description", R"(A surrogate for SZx)");
-    set(options, "szx_surrogate:abs_err_bound", "absolute pointwise error bound");
-    set(options, "szx_surrogate:rel_bound_ratio", "pointwise relative error bound error bound");
-    set(options, "szx_surrogate:err_bound_mode", "error bound type");
-    set(options, "szx_surrogate:err_bound_mode_str", "error bound type as a human readable string");
-    set(options, "szx_surrogate:blockSize", "sampling blocksize (only valid for SSIM)");
-    set(options, "szx_surrogate:samplingStride", "sampling stride for estimation");
-    set(options, "szx_surrogate:metric", "string describing metric to estimate - {'cr', 'psnr', 'ssim'}");
+    set(options, "pressio:description", R"(A surrogate for SPERR)");
+    set(options, "sperr_surrogate:abs_err_bound", "absolute pointwise error bound");
+    set(options, "sperr_surrogate:rel_bound_ratio", "pointwise relative error bound error bound");
+    set(options, "sperr_surrogate:err_bound_mode", "error bound type");
+    set(options, "sperr_surrogate:err_bound_mode_str", "error bound type as a human readable string");
+    set(options, "sperr_surrogate:blockSize", "sampling blocksize (only valid for SSIM)");
+    set(options, "sperr_surrogate:samplingRate", "sampling rate for estimation in (0,1)");
+    set(options, "sperr_surrogate:metric", "string describing metric to estimate - {'cr', 'psnr', 'ssim'}");
     
     return options;
   }
@@ -121,17 +121,17 @@ public:
         errBoundMode = REL;
       }
 
-      get(options, "szx_surrogate:abs_err_bound", &absErrBound);
-      get(options, "szx_surrogate:rel_bound_ratio", &relBoundRatio);
-      get(options, "szx_surrogate:err_bound_mode", &errBoundMode);
-      get(options, "szx_surrogate:blockSize", &blockSize);
-      get(options, "szx_surrogate:samplingStride", &samplingStride);
+      get(options, "sperr_surrogate:abs_err_bound", &absErrBound);
+      get(options, "sperr_surrogate:rel_bound_ratio", &relBoundRatio);
+      get(options, "sperr_surrogate:err_bound_mode", &errBoundMode);
+      get(options, "sperr_surrogate:blockSize", &blockSize);
+      get(options, "sperr_surrogate:samplingRate", &samplingRate);
 
       std::string tmp;
-      if(get(options, "szx_surrogate:err_bound_mode_str", &tmp) == pressio_options_key_set) {
+      if(get(options, "sperr_surrogate:err_bound_mode_str", &tmp) == pressio_options_key_set) {
           errBoundMode = ERR_MODES.at(tmp);
       }
-      if(get(options, "szx_surrogate:metric", &tmp) == pressio_options_key_set) {
+      if(get(options, "sperr_surrogate:metric", &tmp) == pressio_options_key_set) {
         metric_setting = METRIC_MODES.at(tmp);
       }
     }
@@ -148,17 +148,17 @@ public:
     double eb = absErrBound;
     if(errBoundMode == REL) {
         eb = relBoundRatio;
-        printf("szx_surrogate does not support a relative error bound\n");
+        printf("sperr_surrogate does not support a relative error bound\n");
         exit(1);
     }
     float* data = (float*) input->data();
+    std::vector<size_t> input_dims(input->dimensions().rbegin(), input->dimensions().rend());
     if (metric_setting == CR_METRIC) {
-        estCR = szx_estimate_cr_float(data, eb, samplingStride, input->num_elements());
+        estCR = estimate_cr(eb, data, samplingRate, blockSize, input_dims, true);
     } else if (metric_setting == PSNR_METRIC) {
-        estPSNR = szx_estimate_psnr_float(data, eb, samplingStride, input->num_elements());
+        estPSNR = estimate_psnr(eb, data, samplingRate, blockSize, input_dims, true);
     } else if (metric_setting == SSIM_METRIC) {
-        std::vector<size_t> input_dims(input->dimensions().rbegin(), input->dimensions().rend());
-        estSSIM = szx_estimate_ssim_float(data, eb, samplingStride, blockSize, const_cast<size_t*>(input_dims.data()), input->num_elements());
+        estSSIM = estimate_ssim(eb, data, samplingRate, blockSize, input_dims, true);
     } else {
         return set_error(1, "invalid metric string, expected one of {cr, psnr, ssim}");
     }
@@ -187,20 +187,20 @@ public:
     }();
     return version_str.c_str();
   }
-  const char* prefix() const override { return "szx_surrogate"; }
+  const char* prefix() const override { return "sperr_surrogate"; }
 
   pressio_options get_metrics_results_impl() const override {
     struct pressio_options options;
-    set(options, "szx_surrogate:cr", estCR);
-    set(options, "szx_surrogate:psnr", estPSNR);
-    set(options, "szx_surrogate:ssim", estSSIM);
+    set(options, "sperr_surrogate:cr", estCR);
+    set(options, "sperr_surrogate:psnr", estPSNR);
+    set(options, "sperr_surrogate:ssim", estSSIM);
 
     return options;
   }
 
   std::shared_ptr<libpressio_compressor_plugin> clone() override
   {
-    return compat::make_unique<szx_surrogate_plugin>(*this);
+    return compat::make_unique<sperr_surrogate_plugin>(*this);
   }
 
 private:
@@ -208,16 +208,16 @@ private:
   int32_t errBoundMode = ABS;
   double absErrBound = 1e-4;
   double relBoundRatio = 0;
-  int32_t blockSize = 128;
-  int32_t samplingStride = 15;
+  int32_t blockSize = 32; // Sampling blocksize for SSIM estimation
+  double samplingRate = 5;
   int32_t metric_setting = CR_METRIC;
   double estCR = -1;
   double estPSNR = -1;
   double estSSIM = -1;
 };
 
-static pressio_register compressor_many_fields_plugin(compressor_plugins(), "szx_surrogate", []() {
-  return compat::make_unique<szx_surrogate_plugin>();
+static pressio_register compressor_many_fields_plugin(compressor_plugins(), "sperr_surrogate", []() {
+  return compat::make_unique<sperr_surrogate_plugin>();
 });
 
 } }

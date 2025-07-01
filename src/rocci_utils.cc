@@ -114,6 +114,15 @@ char* get_surrogate(ROCCI_Setting rocci_config){
 		case ROCCI_SZX:
 			compressor_id = "szx_surrogate";
 			break;
+		case ROCCI_SZP:
+			compressor_id = "szp_surrogate";
+			break;
+		case ROCCI_CUSZP:
+			compressor_id = "cuszp_surrogate";
+			break;
+		case ROCCI_SPERR:
+			compressor_id = "sperr_surrogate";
+			break;
 		default:
 			return NULL;
 	}

@@ -39,6 +39,9 @@ extern "C" {
 #define ROCCI_DR 4
 #define ROCCI_BG 5
 #define ROCCI_SZX 6
+#define ROCCI_SZP 7
+#define ROCCI_CUSZP 8
+#define ROCCI_SPERR 9
 
 #define ROCCI_CR_METRIC 0
 #define ROCCI_PSNR_METRIC 1

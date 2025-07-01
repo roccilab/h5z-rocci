@@ -183,7 +183,7 @@ public:
                     struct pressio_data* output) override
   {
     auto dims = input->dimensions();
-    config.setDims(dims.begin(), dims.end());
+    config.setDims(dims.rbegin(), dims.rend());
     
     // avoid zero eb
     double eb = config.absErrorBound != 0 ? config.absErrorBound : 1e-16;
