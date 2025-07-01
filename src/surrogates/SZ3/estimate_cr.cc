@@ -309,6 +309,9 @@ public:
         // printf("newsize: %f\n", new_size);
         // printf("huffcr_pred: %f, lossless_pred: %f\n", huffpred, lossless_pred);
         // printf("lossless pred: %f, pred_red_ratio: %f\n", lossless_pred, lossless_red_ratio);
+        
+        delete[] buffer;
+        delete[] lossless_data;
 
         return {huffpred, lossless_pred, sampling_dur};//lossless_pred; //32.0 / prediction;
 
