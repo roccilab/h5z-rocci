@@ -6,7 +6,7 @@
 #define DEBUG_PTR(var) std::cout << "[Debug] [" << __LINE__ << "] " << #var << " = 0x" \
     << std::hex << reinterpret_cast<uintptr_t>(var) << std::dec << std::endl;
 
-#define DEBUG_VAR(var) std::cerr << "[Debug] " << #var " = " << (var) << std::endl;
+#define DEBUG_VAR(var) std::cout << "[Debug] " << #var " = " << (var) << std::endl;
 
 template <typename T, typename = void>
 struct is_iterable : std::false_type {};

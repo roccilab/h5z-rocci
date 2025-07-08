@@ -19,14 +19,16 @@
 #define ROCCI_UINT64 8
 #define ROCCI_INT64 9
 
-enum ALGO { ALGO_SZ3, ALGO_ZFP, ALGO_SZx, ALGO_SPERR };
-constexpr const char *ALGO_STR[] = { "SZ3", "ZFP", "SZx", "SPERR" };
+enum ALGO { ALGO_NULL, ALGO_SZ3, ALGO_ZFP, ALGO_SZx, ALGO_SPERR, ALGO_SZp };
+constexpr const char *ALGO_STR[] = { "SZ3", "ZFP", "SZx", "SPERR", "SZp" };
 
-constexpr const ALGO ALGO_OPTIONS[] = {  
+constexpr const ALGO ALGO_OPTIONS[] = { 
+    ALGO::ALGO_NULL, 
     ALGO::ALGO_SZ3,
     ALGO::ALGO_ZFP,
     ALGO::ALGO_SZx,
-    ALGO::ALGO_SPERR
+    ALGO::ALGO_SPERR, 
+    ALGO::ALGO_SZp
 };
 
 template <class T>
@@ -65,35 +67,34 @@ class Config {
     }
 
     size_t save(unsigned char *&c) const {
+
         auto c0 = c;
+
+        // write(cmprAlgo, c);
+        write(absErrorBound, c);
+        write(dataType, c);
+        
         write(N, c);
         // write(dims.data(), dims.size(), c);
         auto bitWidth = vector_bit_width(dims);
         write(bitWidth, c);
         vector2bytes(dims, bitWidth, c);
 
-        write(num, c);
-        write(cmprAlgo, c);
-
-        write(absErrorBound, c);
-
-        write(dataType, c);
-
         return c - c0;
     }
 
     void load(const unsigned char *&c) {
+
+        // read(cmprAlgo, c);
+        read(absErrorBound, c);
+        read(dataType, c);
+
         read(N, c);
 
         uint8_t bitWidth;
         read(bitWidth, c);
         dims = bytes2vector<size_t>(c, bitWidth, N);
-        read(num, c);
-        read(cmprAlgo, c);
-        
-        read(absErrorBound, c);
-
-        read(dataType, c);
+        num = std::accumulate(dims.begin(), dims.end(), static_cast<size_t>(1), std::multiplies<size_t>());
     }
 
     size_t size_est() {
@@ -103,7 +104,7 @@ class Config {
     char N = 0;
     std::vector<size_t> dims;
     size_t num = 0;
-    uint8_t cmprAlgo = ALGO_SZ3;
+    // uint8_t cmprAlgo = ALGO_NULL;
     double absErrorBound = 1e-1;
     uint8_t dataType = ROCCI_FLOAT;  // dataType is only used in HDF5 filter
 

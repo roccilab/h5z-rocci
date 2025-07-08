@@ -16,7 +16,7 @@ pressio library;
 
 using namespace std::string_literals;
 
-double eb = 1e-1;
+double eb = 1e-2;
 
 void testSZ3_surrogate(pressio_data *input);
 void testSZ3(pressio_data *input);
@@ -39,8 +39,8 @@ signed main(int argc, char* argv[]) {
     std::string input_file = "/anvil/projects/x-cis240669/kai/data/hurricane-100x500x500/Uf48.bin.dat";
     pressio_dtype type = pressio_float_dtype;
 
-    std::vector<size_t> dims {100, 500, 500};
-    // std::vector<size_t> dims {500, 500, 100};
+    // std::vector<size_t> dims {100, 500, 500};
+    std::vector<size_t> dims {500, 500, 100};
     
     // Read the input data
 
@@ -58,17 +58,18 @@ signed main(int argc, char* argv[]) {
         exit(io->error_code());
     }
     pressio_data* input = io->read(&metadata);
+    // pressio_data* input_reverse_dims = 
     pressio_data compressed = pressio_data::empty(pressio_byte_dtype, {});
     pressio_data output = pressio_data::owning(type, dims);
 
     // testSZ3_surrogate(input);
     // testSZ3(input);
 
-    // testZFP_surrogate(input);
-    // testZFP(input);
+    testZFP_surrogate(input);
+    testZFP(input);
 
-    testSZ3_surrogate(input);
-    testSZ3(input);
+    // testSZ3_surrogate(input);
+    // testSZ3(input);
     
 
 

@@ -44,7 +44,6 @@ herr_t set_ROCCI_conf_to_H5(const hid_t propertyList, Config &conf) {
     std::vector<unsigned int> cd_values(cd_nelmts, 0);
     auto buffer = reinterpret_cast<unsigned char *>(cd_values.data());
 
-    conf.save(buffer);
     auto confSizeReal = conf.save(buffer);
     cd_nelmts = std::ceil(confSizeReal / 1.0 / sizeof(int));
 
@@ -73,7 +72,7 @@ herr_t get_ROCCI_conf_from_H5(const hid_t propertyList, Config &conf) {
     // note that cd_nelmts must be non-zero, otherwise, cd_values cannot be filled.
     if (0 > H5Pget_filter_by_id(propertyList, H5Z_FILTER_ROCCI, H5Z_FLAG_MANDATORY, &cd_nelmts, cd_values.data(), 0, NULL,
                                 NULL))
-        H5Z_ROCCI_PUSH_AND_GOTO(H5E_PLINE, H5E_CANTGET, 0, "unable to get current SZ cd_values");
+        H5Z_ROCCI_PUSH_AND_GOTO(H5E_PLINE, H5E_CANTGET, 0, "unable to get current ROCCI cd_values");
 
     // load cd_values into config
     if (cd_nelmts != 0) {

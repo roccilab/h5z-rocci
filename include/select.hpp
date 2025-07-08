@@ -24,18 +24,32 @@
 #include "surrogates/SZ3/SZ3Surrogate.cc"
 #include "surrogates/SZx/SZxSurrogate.cc"
 #include "surrogates/ZFP/ZFPSurrogate.cc"
+#include "surrogates/SPERR/SPERRSurrogate.cc"
+#include "surrogates/SZp/SZpSurrogate.cc"
+// #include "surrogates/cuSZp/cuSZpSurrogate.cc"
 
 pressio library;
 
 using namespace std::string_literals;
 
-static const auto compressor_list = {"sz3", "zfp", "szx"};
-// static const auto compressor_list = {"szx"};
+// static const auto compressor_list = {"sz3", "zfp", "szx", "sperr"};
+// static const auto compressor_list = {"sz3", "zfp", "szx"};
+static const auto compressor_list = {"sz3"};
 
 std::map<std::string, uint8_t> is_reversed_surrogate_dimension = {
     {"sz3", 1}, 
     {"zfp", 0}, 
-    {"szx", 0}
+    {"szx", 0}, 
+    {"sperr", 0}, 
+    {"szp", 1}
+};
+
+std::map<std::string, ALGO> compressor_string_to_enum = {
+    {"sz3", ALGO::ALGO_SZ3}, 
+    {"zfp", ALGO::ALGO_ZFP}, 
+    {"szx", ALGO::ALGO_SZx}, 
+    {"sperr", ALGO::ALGO_SPERR}, 
+    {"szp", ALGO::ALGO_SZp}
 };
 
 std::map<std::string, uint8_t> &is_reversed_dimension = is_reversed_surrogate_dimension;
@@ -43,10 +57,13 @@ std::map<std::string, uint8_t> &is_reversed_dimension = is_reversed_surrogate_di
 std::map<std::string, uint8_t> is_reversed_cmp_dimension = {
     {"sz3", 0}, 
     {"zfp", 0}, 
-    {"szx", 0}
+    {"szx", 0}, 
+    {"sperr", 0}, 
+    {"szp", 0}
 };
 
 double get_surrogate_cr(const std::string _, pressio_data *input, const double eb);
+double get_real_cr(const std::string _, pressio_data *input, const double eb);
 size_t compress_to_destination(const std::string _, pressio_data *input, const double eb, char *&output);
 
 size_t compress_fix_eb_best_cr(pressio_data *input, const double eb, char *&output);
@@ -132,6 +149,10 @@ size_t compress_fix_eb_best_cr(pressio_data *input, const double eb, char *&outp
     return compressed_size;
 }
 
+// auto get_surrogate(const std::string &_) {
+
+// }
+
 double get_surrogate_cr(const std::string _, pressio_data *input, const double eb) {
 
     if (is_reversed_dimension[_]) {
@@ -179,6 +200,43 @@ double get_surrogate_cr(const std::string _, pressio_data *input, const double e
     return cr;
 }
 
+double get_real_cr(const std::string _, pressio_data *input, const double eb) {
+    if (is_reversed_cmp_dimension[_]) {
+        pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
+    }
+    else {
+        pressio_data_reshape(input, dims.size(), dims.data());
+    }
+
+    std::string compressor_string = _;
+    auto compressor = library.get_compressor(compressor_string);
+    if (!compressor) {
+        std::cerr << "Failed to load " << compressor_string << " compressor" << std::endl;
+        exit(-1);
+    }
+
+    pressio_options compression_options{
+        {"sz3:metric", "composite"},
+        {"composite:plugins", std::vector{"size"s}},
+        {"pressio:abs", eb}
+    };
+
+    if(compressor->set_options(compression_options) != 0) {
+        std::cerr << "Failed to set options: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    pressio_data compressed = pressio_data::empty(pressio_byte_dtype, {});
+
+    if(compressor->compress(input, &compressed) != 0) {
+        std::cerr << "Compression error: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    size_t compressed_size = compressed.size_in_bytes();
+    return compressed_size;
+}
+
 size_t compress_to_destination(const std::string _, pressio_data *input, const double eb, char *&output) {
 
     if (is_reversed_cmp_dimension[_]) {
@@ -215,6 +273,8 @@ size_t compress_to_destination(const std::string _, pressio_data *input, const d
 
     size_t compressed_size = compressed.size_in_bytes();
     output = reinterpret_cast<char *>(compressed.release());
+    output = (char*)std::realloc(output, compressed_size + sizeof(ALGO));
+    memcpy(output + compressed_size, &compressor_string_to_enum[compressor_string], sizeof(ALGO));
     return compressed_size;
 }
 

@@ -12,7 +12,7 @@ option(USE_SZX "Build SLYCE SZx Surrogate" ON)
 option(USE_SZ3 "Build SLYCE SZ3 Surrogate" ON)
 option(USE_ZFP "Build SLYCE ZFP Surrogate" ON)
 option(USE_SZP "Build SLYCE SZP Surrogate" ON)
-option(USE_CUSZP "Build SLYCE CUSZP Surrogate" ON)
+# option(USE_CUSZP "Build SLYCE CUSZP Surrogate" ON)
 option(USE_SPERR "Build SLYCE ZFP Surrogate" ON)
 
 if(USE_SZX)
@@ -76,6 +76,7 @@ target_include_directories(
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/surrogates>
   $<INSTALL_INTERFACE:SLYCE>
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/QoZ/include
 )
 target_link_libraries(
   SLYCE
