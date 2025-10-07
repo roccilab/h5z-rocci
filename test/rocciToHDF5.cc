@@ -17,16 +17,13 @@
 
 #define DATASET "testdata_compressed"
 
-
-
-dataEndianType = LITTLE_ENDIAN_DATA;
-
 int main(int argc, char *argv[]) {
 
     //(void) helper fn to detect system endian type
-    //detectSysEndianType();
+    detectSysEndianType();
     //by default sysEndianType and dataEndianType are little endian, can set them manually here
     //dataEndianType = BIG_ENDIAN_DATA;
+    int dataEndianType = LITTLE_ENDIAN_DATA;
 
     size_t r5 = 0, r4 = 0, r3 = 0, r2 = 0, r1 = 0;
     int cmp_algo, interp_algo; //select compression and interpolation for SZ3
@@ -168,7 +165,7 @@ int main(int argc, char *argv[]) {
     printf("....Writing ROCCI compressed data.............\n");
 
     if (dataType == ROCCI_FLOAT) {
-        float *data = malloc(sizeof(float)*nbEle);
+        float *data = (float*)malloc(sizeof(float)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(float), data);
 
         printf("original data = ");
@@ -202,7 +199,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         };
     } else if (dataType == ROCCI_DOUBLE) {
-        double *data = malloc(sizeof(double)*nbEle);
+        double *data = (double*)malloc(sizeof(double)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(double), data);
 
         printf("original data = ");
@@ -236,7 +233,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         };
     } else if (dataType == ROCCI_INT8) {
-        int8_t *data =  malloc(sizeof(int8_t)*nbEle);
+        int8_t *data =  (int8_t*)malloc(sizeof(int8_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(int8_t), data);
 
         printf("original data = ");
@@ -270,7 +267,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else if (dataType == ROCCI_UINT8) {
-        uint8_t *data = malloc(sizeof(uint8_t)*nbEle);
+        uint8_t *data = (uint8_t*)malloc(sizeof(uint8_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(uint8_t), data);
 
         printf("original data = ");
@@ -305,7 +302,7 @@ int main(int argc, char *argv[]) {
         }
     } else if (dataType == ROCCI_INT16) {
 
-        int16_t *data = malloc(sizeof(int16_t)*nbEle);
+        int16_t *data = (int16_t*)malloc(sizeof(int16_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(int16_t), data);
 
         printf("original data = ");
@@ -339,7 +336,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else if (dataType == ROCCI_UINT16) {
-        uint16_t *data = malloc(sizeof(uint16_t)*nbEle);
+        uint16_t *data = (uint16_t*)malloc(sizeof(uint16_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(uint16_t), data);
 
         printf("original data = ");
@@ -374,7 +371,7 @@ int main(int argc, char *argv[]) {
         }
     } else if (dataType == ROCCI_INT32) {
         //printf("%i \t %i\n", sizeof(int), sizeof(int32_t));
-        int32_t *data = malloc(sizeof(int32_t)*nbEle);
+        int32_t *data = (int32_t*)malloc(sizeof(int32_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(int32_t), data);
 
         printf("original data = ");
@@ -408,7 +405,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else if (dataType == ROCCI_UINT32) {
-        uint32_t *data = malloc(sizeof(uint32_t)*nbEle);
+        uint32_t *data = (uint32_t*)malloc(sizeof(uint32_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(uint32_t), data);
 
         printf("original data = ");
@@ -442,7 +439,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else if (dataType == ROCCI_INT64) {
-        int64_t *data = malloc(sizeof(int64_t)*nbEle);
+        int64_t *data = (int64_t*)malloc(sizeof(int64_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(int64_t), data);
 
         printf("original data = ");
@@ -476,7 +473,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
     } else if (dataType == ROCCI_UINT64) {
-        uint64_t *data = malloc(sizeof(uint64_t)*nbEle);
+        uint64_t *data = (uint64_t*)malloc(sizeof(uint64_t)*nbEle);
         readfile(oriFilePath, nbEle, sizeof(uint64_t), data);
 
         printf("original data = ");

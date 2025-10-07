@@ -39,17 +39,34 @@ extern "C" {
 #define ROCCI_DR 4
 #define ROCCI_BG 5
 #define ROCCI_SZX 6
+#define ROCCI_SZP 7
+#define ROCCI_CUSZP 8
+#define ROCCI_SPERR 9
 
 #define ROCCI_CR_METRIC 0
 #define ROCCI_PSNR_METRIC 1
 #define ROCCI_SSIM_METRIC 2
 #define ROCCI_AC_METRIC 3
 
+extern const int versionNumber[4];
+
+extern const char* COMPRESSOR_STR[7];
+extern const int COMPRESSOR_OPTIONS[7];
+
+extern const char* CMP_MODE_STR[8];
+extern const int CMP_MODE_OPTIONS[8];
+
+extern const char* METRIC_STR[3];
+extern const int METRIC_OPTIONS[3];
+
+
+
 typedef struct ROCCI_Target
 {
 	int metric; //specify the metric
-	double targetValue_lowbound;
-	double targetValue_upperbound;
+	bool do_opt;
+	double targetValue; // target value for metric
+	double tolerance; // tolerance for early stopping optimization
 } ROCCI_Target;
 
 typedef struct ROCCI_Setting
@@ -65,7 +82,7 @@ typedef struct ROCCI_Setting
 void ROCCI_Init(char* cfgFile);
 int rocciFidelity_multiFields(float** oriData, float** decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
 int rocciFidelity_singleField(float* oriData, float* decData, float** fidelity, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);
-int roccifastSearchBestSetting (int metric, int compressorID, ROCCI_Target input, ROCCI_Setting* result);
+int roccifastSearchBestSetting (struct pressio_data* input_data, ROCCI_Target input, ROCCI_Setting* result);
 //int constuctRuntimeCompressor (ROCCI_Setting* input , pressio_compressor* output);
 
 unsigned char* ROCCI_compress_args(int dataType, void* data, size_t* outSize, int error_mode, double abs_error, double rel_error, double pw_rel_error, double psnr, double ratio, size_t r5, size_t r4, size_t r3, size_t r2, size_t r1);

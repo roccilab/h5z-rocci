@@ -43,7 +43,7 @@ do                                                    \
 	H5Epush(H5E_DEFAULT,__FILE__,_funcname_,__LINE__, \
 		H5Z_ROCCI_ERRCLASS,MAJ,MIN,MSG);                \
 	retval = RET;                                     \
-	goto done;                                        \
+	return retval;                                        \
 } while(0)
 
 

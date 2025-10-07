@@ -30,6 +30,14 @@ void setDataEndianType(int endianType){
 	dataEndianType = endianType;
 }
 
+int getSysEndiantype() {
+	return sysEndianType;
+}
+
+int getDataEndianType() {
+	return dataEndianType;
+}
+
 void symTransform_4bytes(unsigned char data[4]) {
     unsigned char tmp = data[0];
     data[0] = data[3];
@@ -59,7 +67,7 @@ void symTransform_8bytes(unsigned char data[8])
 	data[4] = tmp;
 }
 
-inline unsigned short bytesToUInt16_bigEndian(unsigned char* bytes)
+unsigned short bytesToUInt16_bigEndian(unsigned char* bytes)
 {
 	int temp = 0;
 	unsigned short res = 0;
@@ -74,7 +82,7 @@ inline unsigned short bytesToUInt16_bigEndian(unsigned char* bytes)
 	return res;
 }	
 	
-inline unsigned int bytesToUInt32_bigEndian(unsigned char* bytes)
+unsigned int bytesToUInt32_bigEndian(unsigned char* bytes)
 {
 	unsigned int temp = 0;
 	unsigned int res = 0;
@@ -98,7 +106,7 @@ inline unsigned int bytesToUInt32_bigEndian(unsigned char* bytes)
 	return res;
 }
 
-inline uint64_t bytesToUInt64_bigEndian(unsigned char* b) {
+uint64_t bytesToUInt64_bigEndian(unsigned char* b) {
 	uint64_t temp = 0;
 	uint64_t res = 0;
 
@@ -137,7 +145,7 @@ inline uint64_t bytesToUInt64_bigEndian(unsigned char* b) {
 	return res;
 }
 	
-inline short bytesToInt16_bigEndian(unsigned char* bytes)
+short bytesToInt16_bigEndian(unsigned char* bytes)
 {
 	int temp = 0;
 	short res = 0;
@@ -152,7 +160,7 @@ inline short bytesToInt16_bigEndian(unsigned char* bytes)
 	return res;
 }	
 	
-inline int bytesToInt32_bigEndian(unsigned char* bytes)
+int bytesToInt32_bigEndian(unsigned char* bytes)
 {
 	int temp = 0;
 	int res = 0;
@@ -176,7 +184,7 @@ inline int bytesToInt32_bigEndian(unsigned char* bytes)
 	return res;
 }
 
-inline int64_t bytesToInt64_bigEndian(unsigned char* b) {
+int64_t bytesToInt64_bigEndian(unsigned char* b) {
 	int64_t temp = 0;
 	int64_t res = 0;
 
@@ -215,7 +223,7 @@ inline int64_t bytesToInt64_bigEndian(unsigned char* b) {
 	return res;
 }
 
-inline int bytesToInt_bigEndian(unsigned char* bytes)
+int bytesToInt_bigEndian(unsigned char* bytes)
 {
 	int temp = 0;
 	int res = 0;
@@ -243,7 +251,7 @@ inline int bytesToInt_bigEndian(unsigned char* bytes)
  * @unsigned char *b the variable to store the converted bytes (length=4)
  * @unsigned int num
  * */
-inline void intToBytes_bigEndian(unsigned char *b, unsigned int num)
+void intToBytes_bigEndian(unsigned char *b, unsigned int num)
 {
 	b[0] = (unsigned char)(num >> 24);	
 	b[1] = (unsigned char)(num >> 16);	
@@ -255,7 +263,7 @@ inline void intToBytes_bigEndian(unsigned char *b, unsigned int num)
 //		symTransform_4bytes(*b); //change to BIG_ENDIAN_DATA
 }
 
-inline void int64ToBytes_bigEndian(unsigned char *b, uint64_t num)
+void int64ToBytes_bigEndian(unsigned char *b, uint64_t num)
 {
 	b[0] = (unsigned char)(num>>56);
 	b[1] = (unsigned char)(num>>48);
@@ -267,7 +275,7 @@ inline void int64ToBytes_bigEndian(unsigned char *b, uint64_t num)
 	b[7] = (unsigned char)(num);
 }
 
-inline void int32ToBytes_bigEndian(unsigned char *b, uint32_t num)
+void int32ToBytes_bigEndian(unsigned char *b, uint32_t num)
 {
 	b[0] = (unsigned char)(num >> 24);	
 	b[1] = (unsigned char)(num >> 16);	
@@ -275,7 +283,7 @@ inline void int32ToBytes_bigEndian(unsigned char *b, uint32_t num)
 	b[3] = (unsigned char)(num);		
 }
 
-inline void int16ToBytes_bigEndian(unsigned char *b, uint16_t num)
+void int16ToBytes_bigEndian(unsigned char *b, uint16_t num)
 {
 	b[0] = (unsigned char)(num >> 8);	
 	b[1] = (unsigned char)(num);
@@ -284,7 +292,7 @@ inline void int16ToBytes_bigEndian(unsigned char *b, uint16_t num)
 /**
  * @endianType: refers to the endian_type of unsigned char* b.
  * */
-inline int64_t bytesToLong_bigEndian(unsigned char* b) {
+int64_t bytesToLong_bigEndian(unsigned char* b) {
 	int64_t temp = 0;
 	int64_t res = 0;
 
@@ -323,7 +331,7 @@ inline int64_t bytesToLong_bigEndian(unsigned char* b) {
 	return res;
 }
 
-inline void longToBytes_bigEndian(unsigned char *b, uint64_t num) 
+void longToBytes_bigEndian(unsigned char *b, uint64_t num) 
 {
 	b[0] = (unsigned char)(num>>56);
 	b[1] = (unsigned char)(num>>48);
@@ -338,14 +346,14 @@ inline void longToBytes_bigEndian(unsigned char *b, uint64_t num)
 }
 
 
-inline int64_t doubleToOSEndianLong(double value)
+int64_t doubleToOSEndianLong(double value)
 {
 	ldouble buf;
 	buf.value = value;
 	return buf.lvalue;
 }
 
-inline int floatToOSEndianInt(float value)
+int floatToOSEndianInt(float value)
 {
 	lfloat buf;
 	buf.value = value;
@@ -353,7 +361,7 @@ inline int floatToOSEndianInt(float value)
 }
 
 //TODO: debug: lfBuf.lvalue could be actually little_endian....
-inline short getExponent_float(float value)
+short getExponent_float(float value)
 {
 	//int ivalue = floatToBigEndianInt(value);
 
@@ -366,7 +374,7 @@ inline short getExponent_float(float value)
 	return (short)expValue;
 }
 
-inline short getPrecisionReqLength_float(float precision)
+short getPrecisionReqLength_float(float precision)
 {
 	lfloat lbuf;
 	lbuf.value = precision;
@@ -380,7 +388,7 @@ inline short getPrecisionReqLength_float(float precision)
 	return (short)expValue;
 }
 
-inline short getExponent_double(double value)
+short getExponent_double(double value)
 {
 	//int64_t lvalue = doubleToBigEndianLong(value);
 	
@@ -393,7 +401,7 @@ inline short getExponent_double(double value)
 	return (short)expValue;
 }
 
-inline short getPrecisionReqLength_double(double precision)
+short getPrecisionReqLength_double(double precision)
 {
 	ldouble lbuf;
 	lbuf.value = precision;
@@ -478,7 +486,7 @@ int64_t bytesToLong(unsigned char* bytes)
 }
 
 //the byte to input is in the big-endian format
-inline float bytesToFloat(unsigned char* bytes)
+float bytesToFloat(unsigned char* bytes)
 {
 	lfloat buf;
 	memcpy(buf.byte, bytes, 4);
@@ -487,7 +495,7 @@ inline float bytesToFloat(unsigned char* bytes)
 	return buf.value;
 }
 
-inline void floatToBytes(unsigned char *b, float num)
+void floatToBytes(unsigned char *b, float num)
 {
 	lfloat buf;
 	buf.value = num;
@@ -497,7 +505,7 @@ inline void floatToBytes(unsigned char *b, float num)
 }
 
 //the byte to input is in the big-endian format
-inline double bytesToDouble(unsigned char* bytes)
+double bytesToDouble(unsigned char* bytes)
 {
 	ldouble buf;
 	memcpy(buf.byte, bytes, 8);
@@ -506,7 +514,7 @@ inline double bytesToDouble(unsigned char* bytes)
 	return buf.value;
 }
 
-inline void doubleToBytes(unsigned char *b, double num)
+void doubleToBytes(unsigned char *b, double num)
 {
 	ldouble buf;
 	buf.value = num;
@@ -515,7 +523,7 @@ inline void doubleToBytes(unsigned char *b, double num)
 		symTransform_8bytes(b);
 }
 
-inline int getMaskRightCode(int m) {
+int getMaskRightCode(int m) {
 	switch (m) {
 	case 1:
 		return 0x01;
@@ -538,16 +546,16 @@ inline int getMaskRightCode(int m) {
 	}
 }
 
-inline int getLeftMovingCode(int kMod8)
+int getLeftMovingCode(int kMod8)
 {
 	return getMaskRightCode(8 - kMod8);
 }
 
-inline int getRightMovingSteps(int kMod8, int resiBitLength) {
+int getRightMovingSteps(int kMod8, int resiBitLength) {
 	return 8 - kMod8 - resiBitLength;
 }
 
-inline int getRightMovingCode(int kMod8, int resiBitLength)
+int getRightMovingCode(int kMod8, int resiBitLength)
 {
 	int rightMovingSteps = 8 - kMod8 - resiBitLength;
 	if(rightMovingSteps < 0)
@@ -822,14 +830,14 @@ void convertULongArrayToBytes(uint64_t* states, size_t stateLength, unsigned cha
 }
 
 
-inline size_t bytesToSize(unsigned char* bytes)
+size_t bytesToSize(unsigned char* bytes)
 {
 	size_t result = 0;
 	result = bytesToLong_bigEndian(bytes);//8	
 	return result;
 }
 
-inline void sizeToBytes(unsigned char* outBytes, size_t size)
+void sizeToBytes(unsigned char* outBytes, size_t size)
 {
 	longToBytes_bigEndian(outBytes, size);//8
 }
