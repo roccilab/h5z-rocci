@@ -10,7 +10,7 @@ HDF5PATH	= /home/sdi/Install/hdf5-1.10.3-install
 #HDF5PATH        = /home/sdi/Install/hdf5-1.12.1-install
 
 ##   COMPILERS
-CC		= gcc
+CC		= g++
 MPICC 		= mpicc
 MPIRUN 		= mpirun
 
@@ -27,7 +27,7 @@ HDF5FLAGS	= -I$(HDF5PATH)/include -L$(HDF5PATH)/lib -Wl,-rpath,$(HDF5PATH)/lib
 ##=======================================================================
 ##   TARGETS
 ##=======================================================================
-all: 		print_h5repack_args szToHDF5 dszFromHDF5 convertBinToHDF5 #test_mpio
+all: 		print_h5repack_args szToHDF5 dszFromHDF5 convertBinToHDF5 tem #test_mpio
 
 print_h5repack_args:	print_h5repack_args.c
 	$(CC)  -O3 -g -o print_h5repack_args print_h5repack_args.c $(SZFLAGS) $(HDF5FLAGS) -lSZ -lzlib -lhdf5sz -lhdf5 -lm -Wl,--no-as-needed -ldl
@@ -43,6 +43,9 @@ convertBinToHDF5:	convertBinToHDF5.c
 
 test_mpio:	test_mpio.c
 	$(MPICC)  -O3 -o test_mpio test_mpio.c $(SZFLAGS) $(HDF5FLAGS) -lSZ -lzlib -lhdf5sz -lhdf5 -lm -Wl,--no-as-needed -ldl
+
+tem:	tem.CC
+	$(CC) -O3 -o tem tem.cc $(SZFLAGS) $(HDF5FLAGS) -lSZ -lzlib -lhdf5sz -lhdf5 -lm -Wl,--no-as-needed -ldl -lpressio -lpressio_std
 
 clean:
 	rm -f szToHDF5 dszFromHDF5 convertBinToHDF5 test_mpio

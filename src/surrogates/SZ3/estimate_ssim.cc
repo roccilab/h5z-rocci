@@ -8,7 +8,7 @@
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/FileUtil.hpp"
 #include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/quantizer/IntegerQuantizer.hpp"
+#include "SZ3/quantizer/LinearQuantizer.hpp"
 #include "SZ3/lossless/Lossless_bypass.hpp"
 #include "SZ3/utils/Iterator.hpp"
 #include "SZ3/utils/Extraction.hpp"
@@ -33,12 +33,12 @@ public:
     SZInterpolationSSIMEstimator(Quantizer quantizer, Encoder encoder, Lossless lossless) :
             quantizer(quantizer), encoder(encoder), lossless(lossless) {
 
-        static_assert(std::is_base_of<concepts::QuantizerInterface<T>, Quantizer>::value,
+        static_assert(std::is_base_of<concepts::QuantizerInterface<T, int>, Quantizer>::value,
                       "must implement the quatizer interface");
         static_assert(std::is_base_of<concepts::EncoderInterface<int>, Encoder>::value,
                       "must implement the encoder interface");
-        static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
-                      "must implement the lossless interface");
+        // static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
+        //               "must implement the lossless interface");
     }
 
     std::vector<int> get_quant_inds() {
@@ -186,7 +186,7 @@ private:
         T d0 = d;
         if(d0 > maxVal) maxVal = d0;
         if(d0 < minVal) minVal = d0;
-        quantizer.quantize_and_overwrite(d, pred);
+        quantizer.quantize(d, pred);
         cmpr_err.push_back(d0 - d);
         square_err.push_back(pow(d0 - d, 2));
         d = d0;

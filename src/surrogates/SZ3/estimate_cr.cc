@@ -8,7 +8,7 @@
 #include "SZ3/utils/Config.hpp"
 #include "SZ3/utils/FileUtil.hpp"
 #include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/quantizer/IntegerQuantizer.hpp"
+#include "SZ3/quantizer/LinearQuantizer.hpp"
 #include "SZ3/lossless/Lossless_bypass.hpp"
 #include "SZ3/utils/Iterator.hpp"
 #include "SZ3/utils/Extraction.hpp"
@@ -31,12 +31,12 @@ public:
     SZInterpolationCREstimator(Quantizer quantizer, Encoder encoder, Lossless lossless) :
             quantizer(quantizer), encoder(encoder), lossless(lossless) {
 
-        static_assert(std::is_base_of<concepts::QuantizerInterface<T>, Quantizer>::value,
+        static_assert(std::is_base_of<concepts::QuantizerInterface<T, int>, Quantizer>::value,
                       "must implement the quatizer interface");
         static_assert(std::is_base_of<concepts::EncoderInterface<int>, Encoder>::value,
                       "must implement the encoder interface");
-        static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
-                      "must implement the lossless interface");
+        // static_assert(std::is_base_of<concepts::LosslessInterface, Lossless>::value,
+        //               "must implement the lossless interface");
     }
 
     std::vector<int> get_quant_inds() {
@@ -222,10 +222,15 @@ public:
 		size_t postHuffmanBuffSize = buffer_pos - buffer;
 
         size_t compressed_size = 0;
-        uchar *lossless_data = lossless.compress(buffer,
-                                                 buffer_pos - buffer,
-                                                 compressed_size);
-        lossless.postcompress_data(buffer);
+        // uchar *lossless_data = lossless.compress(buffer,
+        //                                          buffer_pos - buffer,
+        //                                          compressed_size);
+        uchar *lossless_data = new uchar[buffer_pos - buffer];
+        compressed_size = lossless.compress(buffer, 
+                                            buffer_pos - buffer, 
+                                            lossless_data, 
+                                            buffer_pos - buffer);
+        // lossless.postcompress_data(buffer);
 
         // printf("Precompressedsize %i\n", compressed_size);
 
@@ -304,6 +309,9 @@ public:
         // printf("newsize: %f\n", new_size);
         // printf("huffcr_pred: %f, lossless_pred: %f\n", huffpred, lossless_pred);
         // printf("lossless pred: %f, pred_red_ratio: %f\n", lossless_pred, lossless_red_ratio);
+        
+        delete[] buffer;
+        delete[] lossless_data;
 
         return {huffpred, lossless_pred, sampling_dur};//lossless_pred; //32.0 / prediction;
 
@@ -330,7 +338,7 @@ private:
     //quantize and record compression error
     inline void quantize2(size_t idx, T &d, T pred) {
         T d0 = d;
-        quantizer.quantize_and_overwrite(d, pred);
+        quantizer.quantize(d, pred);
         cmpr_err.push_back(d0 - d);
         d = d0;
     }

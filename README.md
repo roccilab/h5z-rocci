@@ -35,7 +35,25 @@ Additionally, we must allow hdf5 to find our custom filter by setting `HDF5_PLUG
 export HDF5_PLUGIN_PATH=/home/projects/h5z-rocci/build
 ```
 
-Now you can test the filter using the examples `rocciToHDF5` and `drocciFromHDF5` in `build/test`. To alter the configuration you can alter `rocci.config` in `test/`, this file should be in the working directory when calling the H5Z filter to ensure it is found.
+The filter id is 32088, with some parameters to control compression mode and compression parameters. 
+
+Before using the filter, please use the following command to update the plugin path and library path. 
+
+```bash
+export HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}:/your/path/to/filter
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/your/path/to/this/project/h5z-rocci/build
+```
+
+For the compression, for example, use the following command to do compression and decompression. 
+
+```bash
+# compress with fixed error bound 1e-4 using best compressor
+h5repack -f UD=32088,0,3,3944497965,1058682594,256 -i original_file.h5 -o compressed_file.h5
+# decompress
+h5repack -f NONE -i compressed_file.h5 -o decompressed_file.h5
+```
+
+Additionally, you can test the filter using the examples `rocciToHDF5` and `drocciFromHDF5` in `build/test`. To alter the configuration you can alter `rocci.config` in `test/`, this file should be in the working directory when calling the H5Z filter to ensure it is found.
 
 ```bash
 # build/test/

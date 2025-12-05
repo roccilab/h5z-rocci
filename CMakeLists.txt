@@ -3,16 +3,19 @@ project(H5Z_ROCCI CXX C)
 find_package(HDF5 REQUIRED)
 find_package(std_compat REQUIRED)
 find_package(LibPressio REQUIRED)
+find_package(LibPressioTools REQUIRED)
 find_package(LibPressioOpt REQUIRED)
 find_package(LibDistributed REQUIRED)
 find_library(UUID_LIBRARY NAMES uuid libuuid REQUIRED)
+
+find_package(LibPressioSperr REQUIRED)
 
 option(USE_SZX "Build SLYCE SZx Surrogate" ON)
 option(USE_SZ3 "Build SLYCE SZ3 Surrogate" ON)
 option(USE_ZFP "Build SLYCE ZFP Surrogate" ON)
 option(USE_SZP "Build SLYCE SZP Surrogate" ON)
-option(USE_CUSZP "Build SLYCE CUSZP Surrogate" ON)
-option(USE_SPERR "Build SLYCE ZFP Surrogate" ON)
+# option(USE_CUSZP "Build SLYCE CUSZP Surrogate" ON)
+option(USE_SPERR "Build SLYCE SPERR Surrogate" ON)
 
 if(USE_SZX)
   list(APPEND slyce_src 
@@ -75,10 +78,12 @@ target_include_directories(
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/surrogates>
   $<INSTALL_INTERFACE:SLYCE>
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/QoZ/include
 )
 target_link_libraries(
   SLYCE
   PUBLIC LibPressio::libpressio
+  # PRIVATE libpressio_sperr
 )
 
 if(USE_SZP)
@@ -135,6 +140,8 @@ target_include_directories(
 if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
+
+add_subdirectory(tools)
 
 install(TARGETS hdf5rocci EXPORT HDF5ROCCI
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
