@@ -170,8 +170,8 @@ void ROCCI_decompress(Config &conf, char *compressedData, void *decompressedData
     // This function should decompress the data based on the configuration in conf
     // and store the result in decompressedData.
     // For now, we just simulate decompression by copying data.
-    memcpy(decompressedData, compressedData, conf.num * sizeof(T));
 
+    ROCCI_select_decompress(conf, static_cast<T *>(decompressedData), compressedData);
 }
 
 template <typename T>
@@ -212,6 +212,10 @@ static size_t H5Z_filter_ROCCI(unsigned int flags, size_t cd_nelmts, const unsig
 
     bool is_decompress = flags & H5Z_FLAG_REVERSE;
     // get data type and dimensions from set_local
+
+    // if (is_decompress) printf("doing decompression\n");
+    // else printf("doing compression\n");
+    // fflush(stdout);
     
     switch (conf.dataType) {
         case ROCCI_FLOAT:

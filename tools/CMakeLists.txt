@@ -6,11 +6,16 @@ find_package(HDF5 REQUIRED COMPONENTS C)
 function(build_hdf5_test)
   get_filename_component(test_name ${ARGV0} NAME_WE)
   add_executable(${test_name} ${ARGV})
-  target_link_libraries(${test_name} PUBLIC ROCCI SLYCE hdf5rocci PRIVATE LibPressio::libpressio LibPressioTools::libpressio_meta)
+  target_link_libraries(${test_name} PUBLIC ROCCI hdf5rocci PRIVATE SPERR LibPressio::libpressio LibPressioTools::libpressio_meta)
+  # target_link_libraries(${test_name} PUBLIC ROCCI hdf5rocci PRIVATE LibPressio::libpressio LibPressioTools::libpressio_meta)
 endfunction(build_hdf5_test)
 
 build_hdf5_test(select.cpp)
+# build_hdf5_test(tem.cpp)
 build_hdf5_test(conf2int.cpp)
+
+# add_executable( tem tem.cpp )
+# target_link_libraries( tem PUBLIC ROCCI LibPressioTools::libpressio_meta )
 
 set(CMAKE_CXX_STANDARD 17)
 

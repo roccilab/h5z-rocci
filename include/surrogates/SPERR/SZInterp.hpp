@@ -25,6 +25,8 @@
 #include <SPERR/sperr/SPERR3D_OMP_C.h>
 #include <SPERR/sperr/SPERR3D_OMP_D.h>
 
+#include "SPERR_C_API.h"
+
 #include <cmath>
 #include <memory>
 #include <limits>
@@ -76,34 +78,49 @@ template<class T, QoZ::uint N>
 char *SPERR_Compress(QoZ::Config &conf, T *data, size_t &outSize){
     assert(N == 1 or N==2 or N==3);//need to complete 2D support later.
         
-    SPERR3D_OMP_C compressor;
-    compressor.set_num_threads(1);
-    compressor.set_eb_coeff(conf.wavelet_rel_coeff);
-    if(conf.wavelet!=1)
-        compressor.set_skip_wave(true);
-    auto rtn = sperr::RTNType::Good;
+    // SPERR3D_OMP_C compressor;
+    // compressor.set_num_threads(1);
+    // compressor.set_eb_coeff(conf.wavelet_rel_coeff);
+    // if(conf.wavelet!=1)
+    //     compressor.set_skip_wave(true);
+    // auto rtn = sperr::RTNType::Good;
       
     auto chunks = std::vector<size_t>{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
-    if(N==3)
-        rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
-                                {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
-    else if(N==2)
-        rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
-                                {conf.dims[1], conf.dims[0], 1}, {chunks[0], chunks[1], chunks[2]});//temp 2D support. not sure if works well.
-    else
-        rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
-                                {conf.dims[0], 1, 1}, {chunks[0], chunks[1], chunks[2]});
+    // if(N==3)
+    //     rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
+    //                             {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
+    // else if(N==2)
+    //     rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
+    //                             {conf.dims[1], conf.dims[0], 1}, {chunks[0], chunks[1], chunks[2]});//temp 2D support. not sure if works well.
+    // else
+    //     rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
+    //                             {conf.dims[0], 1, 1}, {chunks[0], chunks[1], chunks[2]});
 
-    compressor.set_target_pwe(conf.absErrorBound);
-    rtn = compressor.compress();
-    auto stream = compressor.get_encoded_bitstream();
+    // compressor.set_target_pwe(conf.absErrorBound);
+    // rtn = compressor.compress();
+    // auto stream = compressor.get_encoded_bitstream();
         
-    char * outData=new char[stream.size()+conf.size_est()];
-    outSize=stream.size();
-    memcpy(outData,stream.data(),stream.size());//maybe not efficient
-    stream.clear();
-    stream.shrink_to_fit();
-    return outData;
+    // char * outData=new char[stream.size()+conf.size_est()];
+    // outSize=stream.size();
+    // memcpy(outData,stream.data(),stream.size());//maybe not efficient
+    // stream.clear();
+    // stream.shrink_to_fit();
+    // return outData;
+
+
+    void *compressed_data = nullptr;
+    size_t compressed_size = 0;
+
+    if(N==3)
+        C_API::sperr_comp_3d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[2], conf.dims[1], conf.dims[0], chunks[0], chunks[1], chunks[2], 
+                        3, conf.absErrorBound, 1, &compressed_data, &compressed_size);
+    else if(N==2)
+        C_API::sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[1], conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
+    else
+        C_API::sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, 1, conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
+
+    outSize = compressed_size;
+    return reinterpret_cast<char *>(compressed_data);
 
 }
 template<class T, QoZ::uint N> 
