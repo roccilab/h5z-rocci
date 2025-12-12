@@ -14,7 +14,7 @@ spack env create -d rocci_env
 spack env activate rocci_env/
 spack -e rocci_env config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
 spack -e rocci_env config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
-spack add libpressio-tools ^ libpressio+sz+zfp+sz3 # add compressor plugins as needed here
+spack add libpressio-tools+sperr ^ libpressio+sz+zfp+sz3+szx # add compressor plugins as needed here
 
 spack concretize -f
 spack install
