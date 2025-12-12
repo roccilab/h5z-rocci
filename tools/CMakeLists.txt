@@ -6,7 +6,7 @@ find_package(HDF5 REQUIRED COMPONENTS C)
 function(build_hdf5_test)
   get_filename_component(test_name ${ARGV0} NAME_WE)
   add_executable(${test_name} ${ARGV})
-  target_link_libraries(${test_name} PUBLIC ROCCI hdf5rocci PRIVATE SPERR LibPressio::libpressio LibPressioTools::libpressio_meta)
+  target_link_libraries(${test_name} PUBLIC ROCCI hdf5rocci PRIVATE LibPressioSperr::libpressio_sperr LibPressio::libpressio LibPressioTools::libpressio_meta)
   # target_link_libraries(${test_name} PUBLIC ROCCI hdf5rocci PRIVATE LibPressio::libpressio LibPressioTools::libpressio_meta)
 endfunction(build_hdf5_test)
 
