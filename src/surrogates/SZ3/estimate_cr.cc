@@ -1,3 +1,4 @@
+#pragma once
 
 #include <SZ3/predictor/Predictor.hpp>
 #include "SZ3/quantizer/Quantizer.hpp"
@@ -24,6 +25,8 @@
 #include <algorithm>
 
 using namespace SZ3;
+
+namespace SZ3_CR{
 
 template<class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZInterpolationCREstimator {
@@ -627,3 +630,5 @@ double estimate_cr_float(SZ3::Config conf, float *data, double abs, int stride, 
             throw std::invalid_argument("N must be in range [1,4]");
     }
 }
+
+};

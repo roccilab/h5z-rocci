@@ -28,13 +28,15 @@
 #include "surrogates/SZp/SZpSurrogate.cc"
 // #include "surrogates/cuSZp/cuSZpSurrogate.cc"
 
+#include "Timer.hpp"
+
 pressio library;
 
 using namespace std::string_literals;
 
 static const auto compressor_list = {"sz3", "zfp", "szx", "sperr"};
 // static const auto compressor_list = {"sz3", "zfp", "szx"};
-// static const auto compressor_list = {"sz3"};
+// static const auto compressor_list = {"zfp"};
 
 std::map<std::string, uint8_t> is_reversed_surrogate_dimension = {
     {"sz3", 0}, 
@@ -79,10 +81,15 @@ std::map<std::string, std::string> surrogate_option = {
 };
 
 double get_surrogate_cr(const std::string _, pressio_data *input, const double eb);
+double get_surrogate_psnr(const std::string _, pressio_data *input, const double eb);
 double get_real_cr(const std::string _, pressio_data *input, const double eb);
+double get_real_psnr(const std::string _, pressio_data *input, const double eb);
 size_t compress_to_destination(const std::string _, pressio_data *input, const double eb, char *&output);
 
 size_t compress_fix_eb_best_cr(pressio_data *input, const double eb, char *&output);
+size_t compress_fix_eb_best_psnr(pressio_data *input, const double eb, char *&output);
+size_t compress_fix_eb_best_ssim(pressio_data *input, const double eb, char *&output);
+
 // size_t compress_fix_psnr_best_cr(pressio_data *input, const double psnr, char *output);
 // size_t compress_fix_ssim_best_cr(pressio_data *input, const double ssim, char *output);
 
@@ -133,9 +140,9 @@ size_t ROCCI_select_compress(Config &conf, T *data, char *&compressedData, size_
     }
 
     pressio_data input = pressio_data::nonowning(type, data, dims);
-    pressio_data compressed = pressio_data::empty(pressio_byte_dtype, {});
 
-    return compress_fix_eb_best_cr(&input, compression_parameter, compressedData);
+    // return compress_fix_eb_best_cr(&input, compression_parameter, compressedData);
+    return compress_fix_eb_best_psnr(&input, compression_parameter, compressedData);
 }
 
 size_t compress_fix_eb_best_cr(pressio_data *input, const double eb, char *&output) {
@@ -157,11 +164,33 @@ size_t compress_fix_eb_best_cr(pressio_data *input, const double eb, char *&outp
     return compressed_size;
 }
 
+size_t compress_fix_eb_best_psnr(pressio_data *input, const double eb, char *&output) {
+    
+    double best_psnr = 0;
+    std::string best_compressor = "null";
+    // test the best compressor
+    for (const auto &_ : compressor_list) {
+        auto current_psnr = get_surrogate_psnr(_, input, eb);
+        auto real_psnr = get_real_psnr(_, input, eb);
+        if (current_psnr > best_psnr) {
+            best_psnr = current_psnr;
+            best_compressor = _;
+        }
+    }
+
+    // std::cout << "Best compressor: " << best_compressor << " with CR: " << best_cr << std::endl;
+
+    size_t compressed_size = compress_to_destination(best_compressor, input, eb, output);
+    return compressed_size;
+}
+
 // auto get_surrogate(const std::string &_) {
 
 // }
 
 double get_surrogate_cr(const std::string _, pressio_data *input, const double eb) {
+
+    SZ3::Timer timer(true);
 
     if (is_reversed_surrogate_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
@@ -203,6 +232,9 @@ double get_surrogate_cr(const std::string _, pressio_data *input, const double e
         }
     };
 
+    double time = timer.stop();
+    printf("Surrogate time: %lf seconds\n", time);
+
     double cr;
     assert_defined((_ + "_surrogate:cr").c_str(), &cr);
     printf("%s : Compression ratio: %lf with error bound %lf\n", compressor_string.c_str(), cr, eb);
@@ -210,6 +242,9 @@ double get_surrogate_cr(const std::string _, pressio_data *input, const double e
 }
 
 double get_real_cr(const std::string _, pressio_data *input, const double eb) {
+
+    SZ3::Timer timer(true);
+
     if (is_reversed_cmp_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
     }
@@ -225,7 +260,7 @@ double get_real_cr(const std::string _, pressio_data *input, const double eb) {
     }
 
     pressio_options compression_options{
-        {"sz3:metric", "composite"},
+        {compressor_string + ":metric", "composite"},
         {"composite:plugins", std::vector{"size"s}},
         {"pressio:abs", eb}
     };
@@ -242,12 +277,139 @@ double get_real_cr(const std::string _, pressio_data *input, const double eb) {
         exit(-1);
     }
 
-    size_t compressed_size = compressed.size_in_bytes();
-    return compressed_size;
+    auto metrics = compressor->get_metrics_results();
+    auto assert_defined = [&](const char* key, auto value){
+        if(metrics.get(key, value)!= pressio_options_key_set) {
+            throw std::runtime_error(key + " was not set"s);
+        }
+    };
+
+    double time = timer.stop();
+    printf("Compression time: %lf seconds\n", time);
+
+    double cr;
+    assert_defined("size:compression_ratio", &cr);
+    printf("%s : Compression ratio: %lf with error bound %lf\n", compressor_string.c_str(), cr, eb);
+
+    return cr;
 }
+
+double get_surrogate_psnr(const std::string _, pressio_data *input, const double eb) {
+
+    SZ3::Timer timer(true);
+
+    if (is_reversed_surrogate_dimension[_]) {
+        pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
+    }
+    else {
+        pressio_data_reshape(input, dims.size(), dims.data());
+    }
+
+    const std::string &compressor_string = _;
+    auto compressor = library.get_compressor(_ + "_surrogate");
+    if (!compressor) {
+        std::cerr << "Failed to load " << compressor_string << " surrogate" << std::endl;
+        exit(-1);
+    }
+
+    pressio_options compression_options{
+        // {_ + "_surrogate:abs_error_bound", eb}, 
+        // {_ + "_surrogate:error_bound_mode", "ABS"}, 
+        {surrogate_option[_], eb}, 
+        {_ + "_surrogate:metric", "psnr"}
+    };
+
+    if(compressor->set_options(compression_options) != 0) {
+        std::cerr << "Failed to set options: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    pressio_data compressed = pressio_data::empty(pressio_byte_dtype, {});
+
+    if(compressor->compress(input, &compressed) != 0) {
+        std::cerr << "Compression error: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    auto metrics = compressor->get_metrics_results();
+    auto assert_defined = [&](const char* key, auto value){
+        if(metrics.get(key, value)!= pressio_options_key_set) {
+            throw std::runtime_error(key + " was not set"s);
+        }
+    };
+
+    double psnr;
+    assert_defined((_ + "_surrogate:psnr").c_str(), &psnr);
+    double time = timer.stop();
+    printf("Surrogate time: %lf seconds\n", time);
+    printf("%s : estimate PSNR: %lf with error bound %lf\n", compressor_string.c_str(), psnr, eb);
+    return psnr;
+}
+
+double get_real_psnr(const std::string _, pressio_data *input, const double eb) {
+
+    SZ3::Timer timer(true);
+
+    if (is_reversed_cmp_dimension[_]) {
+        pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
+    }
+    else {
+        pressio_data_reshape(input, dims.size(), dims.data());
+    }
+
+    std::string compressor_string = _;
+    auto compressor = library.get_compressor(compressor_string);
+    if (!compressor) {
+        std::cerr << "Failed to load " << compressor_string << " compressor" << std::endl;
+        exit(-1);
+    }
+
+    pressio_options compression_options{
+        {compressor_string + ":metric", "composite"},
+        {"composite:plugins", std::vector{"error_stat"s}},
+        {"pressio:abs", eb}
+    };
+
+    if(compressor->set_options(compression_options) != 0) {
+        std::cerr << "Failed to set options: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    pressio_data compressed = pressio_data::empty(pressio_byte_dtype, {});
+    pressio_data output = pressio_data::owning(pressio_data_dtype(input), dims);
+
+    if(compressor->compress(input, &compressed) != 0) {
+        std::cerr << "Compression error: " << compressor->error_msg() << std::endl;
+        exit(-1);
+    }
+
+    if(compressor->decompress(&compressed, &output) != 0) {
+        std::cerr << compressor->error_msg() << std::endl;
+        exit(compressor->error_code());
+    }
+
+    auto metrics = compressor->get_metrics_results();
+    auto assert_defined = [&](const char* key, auto value){
+        if(metrics.get(key, value)!= pressio_options_key_set) {
+            throw std::runtime_error(key + " was not set"s);
+        }
+    };
+
+    double time = timer.stop();
+    printf("Compression time: %lf seconds\n", time);
+
+    double psnr;
+    assert_defined("error_stat:psnr", &psnr);
+    printf("%s : PSNR: %lf with error bound %lf\n", compressor_string.c_str(), psnr, eb);
+
+    return psnr;
+}
+
 
 size_t compress_to_destination(const std::string _, pressio_data *input, const double eb, char *&output) {
 
+    SZ3::Timer timer(true);
+
     if (is_reversed_cmp_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
     }
@@ -263,7 +425,7 @@ size_t compress_to_destination(const std::string _, pressio_data *input, const d
     }
 
     pressio_options compression_options{
-        {"sz3:metric", "composite"},
+        {compressor_string + ":metric", "composite"},
         {"composite:plugins", std::vector{"size"s}},
         {"pressio:abs", eb}
     };
@@ -282,7 +444,7 @@ size_t compress_to_destination(const std::string _, pressio_data *input, const d
 
     size_t compressed_size = compressed.size_in_bytes();
 
-    output = new char [compressed_size + sizeof(ALGO) + sizeof(size_t) + sizeof(double)];
+    output = reinterpret_cast<char *>(std::malloc(compressed_size + sizeof(ALGO) + sizeof(size_t) + sizeof(double)));
     char *tail = output;
     memcpy(tail, &compressed_size, sizeof(size_t));
     tail += sizeof(size_t);
@@ -291,6 +453,9 @@ size_t compress_to_destination(const std::string _, pressio_data *input, const d
     memcpy(tail, &eb, sizeof(double));
     tail += sizeof(double);
     memcpy(tail, compressed.data(), compressed_size);
+
+    double time = timer.stop();
+    printf("Compression time: %lf seconds\n", time);
 
     return compressed_size;
 }

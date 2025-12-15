@@ -124,26 +124,21 @@ char *SPERR_Compress(QoZ::Config &conf, T *data, size_t &outSize){
 
 }
 template<class T, QoZ::uint N> 
-void SPERR_Decompress(char *cmpData, size_t cmpSize, T *decData){
-    
-    std::vector<uint8_t> in_stream(cmpData,cmpData+cmpSize);
-    SPERR3D_OMP_D decompressor;
-  
-    decompressor.set_num_threads(1);
-    if (decompressor.use_bitstream(in_stream.data(), in_stream.size()) != sperr::RTNType::Good) {
-        std::cerr << "Read compressed file error: "<< std::endl;
-        return;
+void SPERR_Decompress(char *cmpData, size_t cmpSize, void **decData, std::vector<size_t> &dims){
+
+    assert(dims.size() == N);
+
+    if (N==3) {
+        auto chunks = std::vector<size_t>{1024,1024,1024};
+        C_API::sperr_decomp_3d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, &dims[2], &dims[1], &dims[0], decData);
+    }
+    else if (N==2) {
+        C_API::sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, dims[1], dims[0], decData);
+    }
+    else {
+        C_API::sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, dims[0], decData);
     }
 
-    if (decompressor.decompress(in_stream.data()) != sperr::RTNType::Good) {
-        std::cerr << "Decompression failed!" << std::endl;
-        return ;
-    }
-   
-    in_stream.clear();
-    in_stream.shrink_to_fit();
-    const auto vol = decompressor.get_data<float>();
-    memcpy(decData,vol.data(),sizeof(T)*vol.size());//maybe not efficient
     return;
 }
 
@@ -676,8 +671,8 @@ double SSIMTest(const QoZ::Config &conf,const std::vector< std::vector<T> > & sa
         std::copy(sampled_blocks[k].begin(),sampled_blocks[k].end(),cur_block.begin());
 
         char* cmprData = SPERR_Compress<T,N>(testConfig,cur_block.data(),sampleOutSize);
-        T* decData = new T[per_block_ele_num];
-        SPERR_Decompress<T,N>(cmprData, sampleOutSize, decData);
+        T* decData = nullptr;
+        SPERR_Decompress<T,N>(cmprData, sampleOutSize, reinterpret_cast<void **>(&decData), testConfig.dims);
 
 
         double ssim_score;
@@ -853,8 +848,8 @@ double PSNRTest(const QoZ::Config &conf,const std::vector< std::vector<T> > & sa
         std::copy(sampled_blocks[k].begin(),sampled_blocks[k].end(),cur_block.begin());
 
         char* cmprData = SPERR_Compress<T,N>(testConfig,cur_block.data(),sampleOutSize);
-        T* decData = new T[per_block_ele_num];
-        SPERR_Decompress<T,N>(cmprData, sampleOutSize, decData);
+        T* decData = nullptr;
+        SPERR_Decompress<T,N>(cmprData, sampleOutSize, reinterpret_cast<void **>(&decData), testConfig.dims);
 
         // square_error = 0.0;
         maxValue = sampled_blocks[k][0];

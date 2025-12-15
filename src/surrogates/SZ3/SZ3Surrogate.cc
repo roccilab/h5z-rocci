@@ -193,11 +193,11 @@ public:
     }
     float* data = (float*) input->data();
     if (metric_setting == CR_METRIC) {
-        estCR = estimate_cr_float(config, data, eb, sampleStride, input->num_dimensions());
+        estCR = SZ3_CR::estimate_cr_float(config, data, eb, sampleStride, input->num_dimensions());
     } else if (metric_setting == PSNR_METRIC) {
-        estPSNR = estimate_psnr_float(config, data, eb, sampleStride, input->num_dimensions());
+        estPSNR = SZ3_PSNR::estimate_psnr_float(config, data, eb, sampleStride, input->num_dimensions());
     } else if (metric_setting == SSIM_METRIC) {
-        estSSIM = estimate_ssim_float(config, data, eb, sampleStride, blockSize, input->num_dimensions());
+        estSSIM = SZ3_SSIM::estimate_ssim_float(config, data, eb, sampleStride, blockSize, input->num_dimensions());
     } else {
         return set_error(1, "invalid metric string, expected one of {cr, psnr, ssim}");
     }

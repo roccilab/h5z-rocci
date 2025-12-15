@@ -1,5 +1,9 @@
 #include <SZ3/estimate_metric.h>
 
+#include "estimate_cr.cc"
+#include "estimate_psnr.cc"
+#include "estimate_ssim.cc"
+
 using namespace SZ3;
 
 template<class T, uint N>
@@ -15,7 +19,7 @@ double estimate_compress(Config conf, T *data, double abs, int stride) {
     T* data_copy = new T[conf.num];
     memcpy(data_copy, data, conf.num * sizeof(T));
 
-    SZInterpolationCREstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
+    SZ3_CR::SZInterpolationCREstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
             SZ3::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2),
             SZ3::CustomHuffmanEncoder<int>(),
             SZ3::Lossless_bypass());
@@ -44,6 +48,9 @@ double estimate_cr_float(SZ3::Config conf, float *data, double abs, int stride, 
 
 template<class T, uint N>
 double estimate_psnr(Config conf, T *data, double abs, int stride) {
+
+    printf("stride = %d\n", stride);
+    fflush(stdout);
     conf.cmprAlgo = ALGO_INTERP;
     conf.interpAlgo = INTERP_ALGO_CUBIC;
     conf.interpDirection = 0;
@@ -55,7 +62,7 @@ double estimate_psnr(Config conf, T *data, double abs, int stride) {
     T* data_copy = new T[conf.num];
     memcpy(data_copy, data, sizeof(T)*conf.num);
 
-    SZInterpolationPSNREstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
+    SZ3_PSNR::SZInterpolationPSNREstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
             SZ3::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2),
             SZ3::CustomHuffmanEncoder<int>(),
             SZ3::Lossless_bypass());
@@ -95,7 +102,7 @@ double estimate_ssim(Config conf, T *data, double abs, int stride, int blocksize
     T* data_copy = new T[conf.num];
     memcpy(data_copy, data, sizeof(T)*conf.num);
 
-    SZInterpolationSSIMEstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
+    SZ3_SSIM::SZInterpolationSSIMEstimator<T, N, SZ3::LinearQuantizer<T>, SZ3::CustomHuffmanEncoder<int>, SZ3::Lossless_bypass> estimator(
             SZ3::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2),
             SZ3::CustomHuffmanEncoder<int>(),
             SZ3::Lossless_bypass());

@@ -1,3 +1,4 @@
+#pragma once
 
 #include <SZ3/predictor/Predictor.hpp>
 #include "SZ3/quantizer/Quantizer.hpp"
@@ -24,6 +25,8 @@
 #include <algorithm>
 
 using namespace SZ3;
+
+namespace SZ3_PSNR{
 
 template<class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZInterpolationPSNREstimator {
@@ -159,7 +162,7 @@ private:
         T d0 = d;
         if(d0 > maxVal) maxVal = d0;
         if(d0 < minVal) minVal = d0;
-        quantizer.quantize(d, pred);
+        quantizer.quantize_and_overwrite(d, pred);
         cmpr_err.push_back(d0 - d);
         square_err.push_back(pow(d0 - d, 2));
         d = d0;
@@ -460,3 +463,5 @@ double estimate_psnr_float(SZ3::Config conf, float *data, double abs, int stride
             throw std::invalid_argument("N must be in range [1,4]");
     }
 }
+
+};

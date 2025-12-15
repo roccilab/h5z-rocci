@@ -209,7 +209,7 @@ private:
   double absErrBound = 1e-4;
   double relBoundRatio = 0;
   int32_t blockSize = 32; // Sampling blocksize for SSIM estimation
-  double samplingRate = 5;
+  double samplingRate = 0.1;
   int32_t metric_setting = CR_METRIC;
   double estCR = -1;
   double estPSNR = -1;

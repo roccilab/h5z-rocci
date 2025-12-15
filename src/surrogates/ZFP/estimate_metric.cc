@@ -72,6 +72,9 @@ double calc_psnr(float* ori, float* other, size_t nbEle){
 }
 
 double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, double sample_ratio) {
+
+    printf("sample ratio = %lf\n", sample_ratio);
+
     assert(input->num_dimensions() < 4);
     std::vector<size_t> dims(input->dimensions().rbegin(), input->dimensions().rend());
       size_t sample_num;
@@ -101,23 +104,38 @@ double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, doub
     			pressio_data_new_empty(pressio_byte_dtype, 0, NULL);
 
         pressio_compressor comp = compressor_plugins().build("zfp");
-      struct pressio_options* cmp_options = pressio_compressor_get_options(&comp);
-      pressio_options_set_double(cmp_options, "zfp:accuracy", eb);
-      pressio_compressor_set_options(&comp, cmp_options);
+
+        pressio_options compression_options{
+            {"zfp:metric", "composite"},
+            {"composite:plugins", std::vector{std::string("error_stat")}},
+            {"pressio:abs", eb}
+        };
+
+      pressio_compressor_set_options(&comp, &compression_options);
         if(comp->compress(input_data, compressed_data)) {
             std::cerr << comp->error_msg() << std::endl;
             exit(1);
         }
 
-        pressio_data output = pressio_data::owning(input->dtype(), input->dimensions());
+        pressio_data output = pressio_data::owning(input_data->dtype(), input_data->dimensions());
         if(comp->decompress(compressed_data, &output)) {
             std::cerr << comp->error_msg() << std::endl;
             exit(1);
         }
 
-    float* decData = static_cast<float*>(output.data());
+    auto metrics = comp->get_metrics_results();
+    auto assert_defined = [&](const char* key, auto value){
+        if(metrics.get(key, value)!= pressio_options_key_set) {
+            throw std::runtime_error(std::string(key) + std::string(" was not set"));
+        }
+    };
 
-    return calc_psnr(sampled_dataset, decData, sample_num);
+    double psnr;
+    assert_defined("error_stat:psnr", &psnr);
+
+    printf("psnr = %lf\n", psnr);
+
+    return psnr;
 }
 
 double zfp_estimate_ssim_float(const struct pressio_data* input, double eb, double sample_ratio) {

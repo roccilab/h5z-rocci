@@ -28,9 +28,10 @@ endif()
 
 if(USE_SZ3)
   list(APPEND slyce_src 
-    src/surrogates/SZ3/estimate_cr.cc
-    src/surrogates/SZ3/estimate_psnr.cc
-    src/surrogates/SZ3/estimate_ssim.cc
+    # src/surrogates/SZ3/estimate_cr.cc
+    # src/surrogates/SZ3/estimate_psnr.cc
+    # src/surrogates/SZ3/estimate_ssim.cc
+    src/surrogates/SZ3/estimate_metric.cc
     src/surrogates/SZ3/CustomHuffmanEncoder.cc
     src/surrogates/SZ3/SZ3Surrogate.cc
   )
@@ -85,6 +86,9 @@ target_link_libraries(
   PUBLIC LibPressio::libpressio
   # PRIVATE libpressio_sperr
 )
+
+# target_compile_options(SLYCE PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+# target_link_options(SLYCE PRIVATE -fsanitize=address,undefined)
 
 if(USE_SZP)
   target_link_libraries(

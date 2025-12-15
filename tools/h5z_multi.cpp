@@ -176,18 +176,24 @@ void ROCCI_decompress(Config &conf, char *compressedData, void *decompressedData
 
 template <typename T>
 void process_data(Config &conf, void **buf, size_t *buf_size, size_t nbytes, bool is_decompress) {
-    if (is_decompress) {
-        T *processedData = static_cast<T *>(malloc(conf.num * sizeof(T)));
-        ROCCI_decompress<T>(conf, static_cast<char *>(*buf), processedData);
-        free(*buf);
-        *buf = processedData;
-        *buf_size = conf.num * sizeof(T);
-    } else {
-        char *cmpData = nullptr;
-        *buf_size = ROCCI_compress<T>(conf, static_cast<T *>(*buf), cmpData);
-        free(*buf);
-        *buf = cmpData;
+    if (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+        if (is_decompress) {
+            T *processedData = static_cast<T *>(malloc(conf.num * sizeof(T)));
+            ROCCI_decompress<T>(conf, static_cast<char *>(*buf), processedData);
+            free(*buf);
+            *buf = processedData;
+            *buf_size = conf.num * sizeof(T);
+        } else {
+            char *cmpData = nullptr;
+            *buf_size = ROCCI_compress<T>(conf, static_cast<T *>(*buf), cmpData);
+            free(*buf);
+            *buf = cmpData;
+        }
     }
+    else {
+        
+    }
+    
 }
 
 /**
