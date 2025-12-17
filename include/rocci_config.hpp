@@ -72,6 +72,7 @@ class Config {
 
         // write(cmprAlgo, c);
         write(absErrorBound, c);
+        write(method_id, c);
         write(dataType, c);
         
         write(N, c);
@@ -87,6 +88,7 @@ class Config {
 
         // read(cmprAlgo, c);
         read(absErrorBound, c);
+        read(method_id, c);
         read(dataType, c);
 
         read(N, c);
@@ -102,6 +104,7 @@ class Config {
     }
 
     char N = 0;
+    char method_id = 3;
     std::vector<size_t> dims;
     size_t num = 0;
     // uint8_t cmprAlgo = ALGO_NULL;

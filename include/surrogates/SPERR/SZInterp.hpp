@@ -882,8 +882,8 @@ double PSNRTest(const QoZ::Config &conf,const std::vector< std::vector<T> > & sa
         // num_psnr_samples++;
         
 
-        delete[] decData;
-        delete[] cmprData;
+        free(decData);
+        free(cmprData);
         
                 
     }

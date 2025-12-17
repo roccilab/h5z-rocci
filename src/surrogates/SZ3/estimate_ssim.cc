@@ -181,7 +181,7 @@ private:
 
     //quantize and record the quantization bins
     inline void quantize(size_t idx, T &d, T pred) {
-        quant_inds.push_back(quantizer.quantize(d, pred));
+        quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
     }
 
     //quantize and record compression error
@@ -189,7 +189,7 @@ private:
         T d0 = d;
         if(d0 > maxVal) maxVal = d0;
         if(d0 < minVal) minVal = d0;
-        quantizer.quantize(d, pred);
+        quantizer.quantize_and_overwrite(d, pred);
         cmpr_err.push_back(d0 - d);
         square_err.push_back(pow(d0 - d, 2));
         d = d0;

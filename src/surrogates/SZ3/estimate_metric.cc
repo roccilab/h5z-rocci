@@ -49,8 +49,6 @@ double estimate_cr_float(SZ3::Config conf, float *data, double abs, int stride, 
 template<class T, uint N>
 double estimate_psnr(Config conf, T *data, double abs, int stride) {
 
-    printf("stride = %d\n", stride);
-    fflush(stdout);
     conf.cmprAlgo = ALGO_INTERP;
     conf.interpAlgo = INTERP_ALGO_CUBIC;
     conf.interpDirection = 0;

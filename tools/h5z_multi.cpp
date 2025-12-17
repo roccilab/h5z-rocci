@@ -83,7 +83,7 @@ herr_t get_ROCCI_conf_from_H5(const hid_t propertyList, Config &conf) {
 }
 
 static herr_t H5Z_ROCCI_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_space_id) {
-    std::cout << "start H5Z_ROCCI_set_local" << std::endl;
+    // std::cout << "start H5Z_ROCCI_set_local" << std::endl;
 
     static char const *_funcname_ = "H5Z_ROCCI_set_local";
 
@@ -207,7 +207,7 @@ void process_data(Config &conf, void **buf, size_t *buf_size, size_t nbytes, boo
  */
 static size_t H5Z_filter_ROCCI(unsigned int flags, size_t cd_nelmts, const unsigned int cd_values[], size_t nbytes,
                                 size_t *buf_size, void **buf) {
-    std::cout << "start H5Z_filter_ROCCI" << std::endl;
+    // std::cout << "start H5Z_filter_ROCCI" << std::endl;
 
     if (cd_nelmts == 0)  // this is special data such as string, which should not be treated as values.
         return nbytes;

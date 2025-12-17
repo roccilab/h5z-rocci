@@ -73,8 +73,6 @@ double calc_psnr(float* ori, float* other, size_t nbEle){
 
 double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, double sample_ratio) {
 
-    printf("sample ratio = %lf\n", sample_ratio);
-
     assert(input->num_dimensions() < 4);
     std::vector<size_t> dims(input->dimensions().rbegin(), input->dimensions().rend());
       size_t sample_num;
@@ -132,8 +130,6 @@ double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, doub
 
     double psnr;
     assert_defined("error_stat:psnr", &psnr);
-
-    printf("psnr = %lf\n", psnr);
 
     return psnr;
 }
