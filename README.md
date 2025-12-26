@@ -42,6 +42,11 @@ spack install libpressio-tools+sperr ^libpressio+sz+zfp+sz3+szx ^szx@main
 > spack install libpressio-tools+sperr ^libpressio+sz+zfp+sz3+szx ^szx@main %gcc@13
 > ```
 
+If you are not using a virtual spack enviroment, please load the packages before using them. 
+```bash
+spack load libpressio-tools+sperr ^libpressio+sz+zfp+sz3+szx ^szx@main
+```
+
 
 
 ## 4. Build H5Z-ROCCI:
