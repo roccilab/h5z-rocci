@@ -12,6 +12,8 @@
 #include <cmath>
 #include <type_traits>
 #include <limits>
+#include <cstdlib>
+#include <sstream>
 
 #include <libpressio.h>
 #include <libpressio_ext/cpp/libpressio.h>
@@ -35,9 +37,18 @@ pressio library;
 
 using namespace std::string_literals;
 
-static const auto compressor_list = {"sz3", "zfp", "szx", "sperr"};
-// static const auto compressor_list = {"sz3", "zfp", "szx"};
-// static const auto compressor_list = {"sperr"};
+// Candidate compressors. Overridable via ROCCI_COMPRESSORS=comma,separated (for testing
+// a single/subset compressor); defaults to the full set.
+inline std::vector<std::string> make_compressor_list() {
+    if (const char *e = std::getenv("ROCCI_COMPRESSORS")) {
+        std::vector<std::string> out; std::string s(e), cur;
+        std::stringstream ss(s);
+        while (std::getline(ss, cur, ',')) if (!cur.empty()) out.push_back(cur);
+        if (!out.empty()) return out;
+    }
+    return {"sz3", "zfp", "szx", "sperr"};
+}
+static const std::vector<std::string> compressor_list = make_compressor_list();
 
 std::map<std::string, uint8_t> is_reversed_surrogate_dimension = {
     {"sz3", 0}, 
@@ -355,9 +366,15 @@ std::pair<double, double> get_surrogate_psnr_with_cr(const std::string _, pressi
     return {pow(10, mid), get_surrogate_psnr(_, input, pow(10, mid))};
 }
 
-double get_surrogate_cr(const std::string _, pressio_data *input, const double eb) {
+double get_surrogate_cr(const std::string _, pressio_data *input_orig, const double eb) {
 
     SZ3::Timer timer(true);
+
+    // Surrogate compression can mutate its input buffer in place; operate on a
+    // clone so the caller's data stays pristine for the real compressor (and so
+    // each candidate surrogate sees the original, not a predecessor's residue).
+    pressio_data input_clone = pressio_data::clone(*input_orig);
+    pressio_data *input = &input_clone;
 
     if (is_reversed_surrogate_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
@@ -461,9 +478,12 @@ double get_real_cr(const std::string _, pressio_data *input, const double eb) {
     return cr;
 }
 
-double get_surrogate_psnr(const std::string _, pressio_data *input, const double eb) {
+double get_surrogate_psnr(const std::string _, pressio_data *input_orig, const double eb) {
 
     SZ3::Timer timer(true);
+
+    pressio_data input_clone = pressio_data::clone(*input_orig);  // keep caller data pristine
+    pressio_data *input = &input_clone;
 
     if (is_reversed_surrogate_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
@@ -573,9 +593,12 @@ double get_real_psnr(const std::string _, pressio_data *input, const double eb) 
     return psnr;
 }
 
-double get_surrogate_ssim(const std::string _, pressio_data *input, const double eb) {
+double get_surrogate_ssim(const std::string _, pressio_data *input_orig, const double eb) {
 
     SZ3::Timer timer(true);
+
+    pressio_data input_clone = pressio_data::clone(*input_orig);  // keep caller data pristine
+    pressio_data *input = &input_clone;
 
     if (is_reversed_surrogate_dimension[_]) {
         pressio_data_reshape(input, reversed_dims.size(), reversed_dims.data());
@@ -734,7 +757,12 @@ size_t compress_to_destination(const std::string _, pressio_data *input, const d
     double time = timer.stop();
     // printf("Compression time: %lf seconds\n", time);
 
-    return compressed_size;
+    // Return the TOTAL buffer size (header + payload). The header holds the
+    // payload byte count, the compressor id and the error bound; returning only
+    // the payload size made HDF5 store a truncated buffer (losing the trailing
+    // sizeof(size_t)+sizeof(ALGO)+sizeof(double) bytes of the compressed stream),
+    // which corrupted the tail blocks/outliers on decompression.
+    return compressed_size + sizeof(size_t) + sizeof(ALGO) + sizeof(double);
 }
 
 template <typename T>

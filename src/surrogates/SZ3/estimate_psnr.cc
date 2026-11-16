@@ -154,7 +154,7 @@ private:
 
     //quantize and record the quantization bins
     inline void quantize(size_t idx, T &d, T pred) {
-        quant_inds.push_back(quantizer.quantize(d, pred));
+        quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
     }
 
     //quantize and record compression error

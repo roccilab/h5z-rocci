@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <memory>
@@ -102,6 +103,13 @@ static herr_t H5Z_ROCCI_set_local(hid_t dcpl_id, hid_t type_id, hid_t chunk_spac
     if (0 > (ndims = H5Sget_simple_extent_dims(chunk_space_id, dims_all, NULL)))
         H5Z_ROCCI_PUSH_AND_GOTO(H5E_ARGS, H5E_BADTYPE, -1, "not a data space");
     std::vector<size_t> dims(dims_all, dims_all + ndims);
+    // HDF5 reports dataspace dims in C-order (slowest-varying first), but the ROCCI
+    // selection logic / libpressio follow the zgate convention of fastest-varying first
+    // (the raw-file natural order [dx,dy,dz]). Reverse here at the HDF5 boundary so that
+    // conf.dims matches that convention and the is_reversed_*_dimension maps apply as tuned.
+    // set_local runs only at write time; the reversed dims are saved into cd_values and
+    // reused verbatim on read, so compress/decompress stay symmetric.
+    std::reverse(dims.begin(), dims.end());
 
     if (dclass == H5T_FLOAT)
         conf.dataType = dsize == 4 ? ROCCI_FLOAT : ROCCI_DOUBLE;

@@ -27,6 +27,14 @@
 
 #include "SPERR_C_API.h"
 
+extern "C" {
+int sperr_comp_3d(const void*, int, size_t, size_t, size_t,
+                  size_t, size_t, size_t, int, double, size_t, void**, size_t*);
+int sperr_comp_2d(const void*, int, size_t, size_t, int, double, int, void**, size_t*);
+int sperr_decomp_3d(const void*, size_t, int, size_t, size_t*, size_t*, size_t*, void**);
+int sperr_decomp_2d(const void*, size_t, int, size_t, size_t, void**);
+}
+
 #include <cmath>
 #include <memory>
 #include <limits>
@@ -85,7 +93,11 @@ char *SPERR_Compress(QoZ::Config &conf, T *data, size_t &outSize){
     //     compressor.set_skip_wave(true);
     // auto rtn = sperr::RTNType::Good;
       
-    auto chunks = std::vector<size_t>{1024,1024,1024};//ori 256^3, to tell the truth this is not large enough for scale but I just keep it, maybe set it large later.
+    auto chunks = std::vector<size_t>{
+        std::min<size_t>(1024, conf.dims[0]),
+        std::min<size_t>(1024, N >= 2 ? conf.dims[1] : 1),
+        std::min<size_t>(1024, N >= 3 ? conf.dims[2] : 1)
+    };
     // if(N==3)
     //     rtn = compressor.copy_data(reinterpret_cast<const float*>(data), conf.num,
     //                             {conf.dims[2], conf.dims[1], conf.dims[0]}, {chunks[0], chunks[1], chunks[2]});
@@ -112,12 +124,12 @@ char *SPERR_Compress(QoZ::Config &conf, T *data, size_t &outSize){
     size_t compressed_size = 0;
 
     if(N==3)
-        C_API::sperr_comp_3d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[2], conf.dims[1], conf.dims[0], chunks[0], chunks[1], chunks[2], 
+        sperr_comp_3d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[2], conf.dims[1], conf.dims[0], chunks[0], chunks[1], chunks[2], 
                         3, conf.absErrorBound, 1, &compressed_data, &compressed_size);
     else if(N==2)
-        C_API::sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[1], conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
+        sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, conf.dims[1], conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
     else
-        C_API::sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, 1, conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
+        sperr_comp_2d(data, std::is_same_v<T, float> ? 1 : 0, 1, conf.dims[0], 3, conf.absErrorBound, 0, &compressed_data, &compressed_size);
 
     outSize = compressed_size;
     return reinterpret_cast<char *>(compressed_data);
@@ -130,13 +142,13 @@ void SPERR_Decompress(char *cmpData, size_t cmpSize, void **decData, std::vector
 
     if (N==3) {
         auto chunks = std::vector<size_t>{1024,1024,1024};
-        C_API::sperr_decomp_3d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, &dims[2], &dims[1], &dims[0], decData);
+        sperr_decomp_3d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, &dims[2], &dims[1], &dims[0], decData);
     }
     else if (N==2) {
-        C_API::sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, dims[1], dims[0], decData);
+        sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, dims[1], dims[0], decData);
     }
     else {
-        C_API::sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, dims[0], decData);
+        sperr_decomp_2d(cmpData, cmpSize, std::is_same_v<T, float> ? 1 : 0, 1, dims[0], decData);
     }
 
     return;

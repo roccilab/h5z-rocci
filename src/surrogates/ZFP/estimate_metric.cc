@@ -29,8 +29,9 @@ double zfp_estimate_cr_float(const struct pressio_data* input, double eb, double
 		}
       
       float* sampled_dataset = sample_data.data();
+      std::vector<size_t> rev_sdims(sample_dims.rbegin(), sample_dims.rend());
       struct pressio_data* input_data =
-				pressio_data_new_move(pressio_float_dtype, sampled_dataset, sample_dims.size(), sample_dims.data(),
+				pressio_data_new_move(pressio_float_dtype, sampled_dataset, rev_sdims.size(), rev_sdims.data(),
           pressio_data_libc_free_fn, NULL);
       struct pressio_data* compressed_data =
     			pressio_data_new_empty(pressio_byte_dtype, 0, NULL);
@@ -95,8 +96,9 @@ double zfp_estimate_psnr_float(const struct pressio_data* input, double eb, doub
 		}
       
       float* sampled_dataset = sample_data.data();
+      std::vector<size_t> rev_sdims(sample_dims.rbegin(), sample_dims.rend());
       struct pressio_data* input_data =
-				pressio_data_new_move(pressio_float_dtype, sampled_dataset, sample_dims.size(), sample_dims.data(),
+				pressio_data_new_move(pressio_float_dtype, sampled_dataset, rev_sdims.size(), rev_sdims.data(),
           pressio_data_libc_free_fn, NULL);
       struct pressio_data* compressed_data =
     			pressio_data_new_empty(pressio_byte_dtype, 0, NULL);
@@ -157,8 +159,9 @@ double zfp_estimate_ssim_float(const struct pressio_data* input, double eb, doub
 		}
       
       float* sampled_dataset = sample_data.data();
+      std::vector<size_t> rev_sdims(sample_dims.rbegin(), sample_dims.rend());
       struct pressio_data* input_data =
-				pressio_data_new_move(pressio_float_dtype, sampled_dataset, sample_dims.size(), sample_dims.data(),
+				pressio_data_new_move(pressio_float_dtype, sampled_dataset, rev_sdims.size(), rev_sdims.data(),
           pressio_data_libc_free_fn, NULL);
       struct pressio_data* compressed_data =
     			pressio_data_new_empty(pressio_byte_dtype, 0, NULL);
@@ -173,7 +176,7 @@ double zfp_estimate_ssim_float(const struct pressio_data* input, double eb, doub
             exit(1);
         }
 
-        pressio_data output = pressio_data::owning(input->dtype(), input->dimensions());
+        pressio_data output = pressio_data::owning(input_data->dtype(), input_data->dimensions());
         if(comp->decompress(compressed_data, &output)) {
             std::cerr << comp->error_msg() << std::endl;
             exit(1);
@@ -181,7 +184,7 @@ double zfp_estimate_ssim_float(const struct pressio_data* input, double eb, doub
 
     float* decData = static_cast<float*>(output.data());
 
-    auto n_dims = input->num_dimensions();
+    auto n_dims = input_data->num_dimensions();
     double estimatedSSIM;
     if(n_dims == 1){
         estimatedSSIM = SSIM_1d_windowed_float(sampled_dataset, decData, sample_dims[0], 8, 8);

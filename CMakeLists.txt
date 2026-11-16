@@ -4,7 +4,7 @@ find_package(HDF5 REQUIRED)
 find_package(std_compat REQUIRED)
 find_package(LibPressio REQUIRED)
 find_package(LibPressioTools REQUIRED)
-find_package(LibPressioOpt REQUIRED)
+find_package(LibPressioOpt QUIET)
 find_package(LibDistributed REQUIRED)
 find_library(UUID_LIBRARY NAMES uuid libuuid REQUIRED)
 
@@ -74,6 +74,10 @@ add_library(SLYCE SHARED
   src/surrogates/qcat_ssim.cc
   ${slyce_src}
 )
+set_target_properties(SLYCE PROPERTIES
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
+)
 target_include_directories(
   SLYCE
   PUBLIC
@@ -122,8 +126,11 @@ target_include_directories(
 
 target_link_libraries(
   ROCCI
-  PUBLIC LibPressio::libpressio LibPressioOpt::libpressio_opt LibDistributed::libdistributed ${UUID_LIBRARY} SLYCE
+  PUBLIC LibPressio::libpressio LibDistributed::libdistributed ${UUID_LIBRARY} SLYCE
 )
+if(LibPressioOpt_FOUND)
+  target_link_libraries(ROCCI PUBLIC LibPressioOpt::libpressio_opt)
+endif()
 
 add_library(
   hdf5rocci SHARED
